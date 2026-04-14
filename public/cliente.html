@@ -11,7 +11,7 @@
     <section class="hero">
       <div>
         <h1>Vision Play</h1>
-        <p>Assista aos canais disponíveis para seu acesso.</p>
+        <p>Explore seus canais com uma experiência moderna, rápida e organizada.</p>
       </div>
 
       <div class="hero-actions">
@@ -19,12 +19,54 @@
       </div>
     </section>
 
+    <section class="stats">
+      <div class="stat-card">
+        <span>Canais disponíveis</span>
+        <strong id="totalCanaisCliente">0</strong>
+      </div>
+
+      <div class="stat-card">
+        <span>Status da conta</span>
+        <strong>Ativa</strong>
+      </div>
+
+      <div class="stat-card">
+        <span>Qualidade</span>
+        <strong>Premium</strong>
+      </div>
+    </section>
+
+    <section class="channels-card" style="margin-bottom: 22px;">
+      <div class="channels-top">
+        <div>
+          <h2>Destaque</h2>
+          <p>Seu acesso premium está pronto para assistir.</p>
+        </div>
+      </div>
+
+      <div class="channel-card">
+        <div class="channel-body">
+          <div class="channel-meta">
+            <div class="channel-name">Bem-vindo à Vision Play</div>
+            <span class="status">online</span>
+          </div>
+          <div class="channel-info">
+            Aproveite seus canais com um visual mais profissional e uma navegação mais simples.
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="channels-card">
       <div class="channels-top">
         <div>
           <h2>Canais disponíveis</h2>
-          <p>Lista liberada para o cliente.</p>
+          <p>Escolha um canal para assistir agora.</p>
         </div>
+      </div>
+
+      <div class="search-box">
+        <input type="text" id="buscaCliente" placeholder="Buscar canal por nome ou categoria...">
       </div>
 
       <div id="listaCanais" class="channel-grid"></div>
@@ -39,11 +81,125 @@
       </div>
       <div class="modal-content">
         <video id="videoPlayer" controls autoplay></video>
-        <p class="player-note">Aproveite seu conteúdo liberado.</p>
+        <p class="player-note">Aproveite seu conteúdo premium com melhor experiência visual.</p>
       </div>
     </div>
   </div>
 
-  <script src="/app.js"></script>
+  <script>
+    const STORAGE_KEY = 'iptv_logged_in';
+    const USER_TYPE_KEY = 'tipo_usuario';
+
+    const listaCanais = document.getElementById('listaCanais');
+    const buscaCliente = document.getElementById('buscaCliente');
+    const totalCanaisCliente = document.getElementById('totalCanaisCliente');
+    const playerModal = document.getElementById('playerModal');
+    const videoPlayer = document.getElementById('videoPlayer');
+    const playerTitle = document.getElementById('playerTitle');
+
+    let canaisCliente = [];
+
+    if (localStorage.getItem(STORAGE_KEY) !== 'true') {
+      window.location.href = '/';
+    }
+
+    const tipo = localStorage.getItem(USER_TYPE_KEY);
+    if (tipo !== 'cliente') {
+      window.location.href = '/admin.html';
+    }
+
+    function logout() {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(USER_TYPE_KEY);
+      window.location.href = '/';
+    }
+
+    function atualizarTotalCliente(lista) {
+      totalCanaisCliente.textContent = Array.isArray(lista) ? lista.length : 0;
+    }
+
+    function renderizarCanaisCliente(lista) {
+      listaCanais.innerHTML = '';
+      atualizarTotalCliente(canaisCliente);
+
+      if (!Array.isArray(lista) || lista.length === 0) {
+        listaCanais.innerHTML = '<div class="empty">Nenhum canal disponível.</div>';
+        return;
+      }
+
+      lista.slice().reverse().forEach((canal) => {
+        const logo = canal.logo && canal.logo.trim() !== ''
+          ? canal.logo
+          : 'https://via.placeholder.com/600x340?text=Sem+Logo';
+
+        const card = document.createElement('div');
+        card.className = 'channel-card';
+
+        card.innerHTML = `
+          <img class="channel-thumb" src="${logo}" alt="Logo do canal">
+          <div class="channel-body">
+            <div class="channel-meta">
+              <div class="channel-name">${canal.nome}</div>
+              <span class="status">online</span>
+            </div>
+
+            <div class="channel-info">
+              <strong>Categoria:</strong> ${canal.categoria}
+            </div>
+
+            <div class="channel-actions">
+              <button class="btn btn-watch" onclick="assistirCanalCliente(${JSON.stringify(canal.nome)}, ${JSON.stringify(canal.url)})">
+                Assistir
+              </button>
+            </div>
+          </div>
+        `;
+
+        listaCanais.appendChild(card);
+      });
+    }
+
+    async function carregarCanaisCliente() {
+      try {
+        const response = await fetch('/api/canais');
+        const canais = await response.json();
+
+        canaisCliente = Array.isArray(canais) ? canais : [];
+        renderizarCanaisCliente(canaisCliente);
+      } catch (error) {
+        listaCanais.innerHTML = '<div class="empty">Erro ao carregar canais.</div>';
+        console.error('Erro ao carregar canais:', error);
+      }
+    }
+
+    if (buscaCliente) {
+      buscaCliente.addEventListener('input', () => {
+        const termo = buscaCliente.value.toLowerCase().trim();
+
+        const filtrados = canaisCliente.filter((canal) =>
+          canal.nome.toLowerCase().includes(termo) ||
+          canal.categoria.toLowerCase().includes(termo)
+        );
+
+        renderizarCanaisCliente(filtrados);
+      });
+    }
+
+    function assistirCanalCliente(nome, url) {
+      playerTitle.textContent = nome;
+      videoPlayer.src = url;
+      playerModal.classList.add('active');
+      videoPlayer.load();
+    }
+
+    function fecharPlayer() {
+      playerModal.classList.remove('active');
+      videoPlayer.pause();
+      videoPlayer.removeAttribute('src');
+      videoPlayer.load();
+    }
+
+    carregarCanaisCliente();
+  </script>
 </body>
 </html>
