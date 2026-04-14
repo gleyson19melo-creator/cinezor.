@@ -1,6 +1,3 @@
-const STORAGE_KEY = 'iptv_logged_in';
-const USER_TYPE_KEY = 'tipo_usuario';
-
 let hlsPlayer = null;
 
 async function login(event) {
@@ -27,8 +24,7 @@ async function login(event) {
       return;
     }
 
-    localStorage.setItem(STORAGE_KEY, 'true');
-    localStorage.setItem(USER_TYPE_KEY, data.tipo);
+    localStorage.clear();
 
     if (data.tipo === 'admin') {
       window.location.href = '/admin.html';
@@ -79,10 +75,16 @@ function playVideoUrl(videoElement, url) {
   }
 }
 
-function logout() {
+async function logout() {
   destroyHls();
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(USER_TYPE_KEY);
+
+  try {
+    await fetch('/api/logout', {
+      method: 'POST'
+    });
+  } catch (error) {}
+
+  localStorage.clear();
   window.location.href = '/';
 }
 
@@ -94,15 +96,6 @@ if (document.getElementById('loginForm')) {
    ÁREA ADMIN
 ========================= */
 if (window.location.pathname.includes('admin.html')) {
-  if (localStorage.getItem(STORAGE_KEY) !== 'true') {
-    window.location.href = '/';
-  }
-
-  const tipo = localStorage.getItem(USER_TYPE_KEY);
-  if (tipo !== 'admin') {
-    window.location.href = '/cliente.html';
-  }
-
   const form = document.getElementById('channelForm');
   const editForm = document.getElementById('editForm');
   const userForm = document.getElementById('userForm');
@@ -200,11 +193,6 @@ if (window.location.pathname.includes('admin.html')) {
     }
 
     usuarios.slice().reverse().forEach((user) => {
-      const botaoExcluir =
-        user.usuario === 'adminMaster'
-          ? ''
-          : `<button class="btn btn-danger" onclick="removerUsuario(${user.id})">Excluir</button>`;
-
       const card = document.createElement('div');
       card.className = 'channel-card';
       card.innerHTML = `
@@ -216,7 +204,7 @@ if (window.location.pathname.includes('admin.html')) {
           <div class="channel-info"><strong>ID:</strong> ${user.id}</div>
           <div class="channel-info"><strong>Tipo:</strong> ${user.tipo}</div>
           <div class="channel-actions">
-            ${botaoExcluir}
+            ${user.tipo === 'admin' ? '' : `<button class="btn btn-danger" onclick="removerUsuario(${user.id})">Excluir</button>`}
           </div>
         </div>
       `;
@@ -441,15 +429,6 @@ if (window.location.pathname.includes('admin.html')) {
    ÁREA CLIENTE PREMIUM
 ========================= */
 if (window.location.pathname.includes('cliente.html')) {
-  if (localStorage.getItem(STORAGE_KEY) !== 'true') {
-    window.location.href = '/';
-  }
-
-  const tipo = localStorage.getItem(USER_TYPE_KEY);
-  if (tipo !== 'cliente') {
-    window.location.href = '/admin.html';
-  }
-
   const listaCanais = document.getElementById('listaCanais');
   const buscaCliente = document.getElementById('buscaCliente');
   const totalCanaisCliente = document.getElementById('totalCanaisCliente');
