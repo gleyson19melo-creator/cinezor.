@@ -11,7 +11,7 @@
 
     <section class="hero">
       <div>
-        <h1>Vision Play admin</h1>
+        <h1>Vision Play Admin</h1>
         <p>Painel administrativo para gerenciamento completo da plataforma.</p>
       </div>
 
@@ -55,7 +55,11 @@
 
           <div>
             <label>Tipo</label>
-            <input type="text" id="tipoUsuario" placeholder="admin ou cliente" required>
+            <select id="tipoUsuario" required>
+              <option value="">Selecione</option>
+              <option value="admin">Admin</option>
+              <option value="cliente">Cliente</option>
+            </select>
           </div>
 
           <button type="submit" class="btn btn-primary">Adicionar usuário</button>
@@ -79,7 +83,7 @@
     <section class="layout">
       <div class="panel-card">
         <h2>Adicionar canal</h2>
-        <p class="subtitle">Cadastre novos canais para os clientes.</p>
+        <p class="subtitle">Cadastre novos conteúdos para os clientes.</p>
 
         <form id="channelForm">
           <div>
@@ -89,7 +93,12 @@
 
           <div>
             <label>Categoria</label>
-            <input type="text" id="categoria" required>
+            <select id="categoria" required>
+              <option value="">Selecione</option>
+              <option value="Filme">Filme</option>
+              <option value="Série">Série</option>
+              <option value="Anime">Anime</option>
+            </select>
           </div>
 
           <div>
@@ -111,8 +120,8 @@
       <div class="channels-card">
         <div class="channels-top">
           <div>
-            <h2>Canais cadastrados</h2>
-            <p>Gerencie e acompanhe os canais disponíveis.</p>
+            <h2>Conteúdos cadastrados</h2>
+            <p>Gerencie e acompanhe os conteúdos disponíveis.</p>
           </div>
         </div>
 
@@ -129,13 +138,13 @@
   <div id="playerModal" class="modal">
     <div class="modal-box">
       <div class="modal-header">
-        <h3 id="playerTitle">Reprodução do canal</h3>
+        <h3 id="playerTitle">Reprodução do conteúdo</h3>
         <button class="close-btn" onclick="fecharPlayer()">Fechar</button>
       </div>
 
       <div class="modal-content">
         <video id="videoPlayer" controls playsinline webkit-playsinline></video>
-        <p class="player-note">Player com suporte avançado para MP4 e canais HLS (.m3u8).</p>
+        <p class="player-note">Player com suporte avançado para MP4 e HLS (.m3u8).</p>
       </div>
     </div>
   </div>
@@ -143,7 +152,7 @@
   <div id="editModal" class="modal">
     <div class="modal-box">
       <div class="modal-header">
-        <h3>Editar canal</h3>
+        <h3>Editar conteúdo</h3>
         <button class="close-btn" onclick="fecharEdicao()">Fechar</button>
       </div>
 
@@ -152,22 +161,26 @@
           <input type="hidden" id="editId">
 
           <div>
-            <label for="editNome">Nome do canal</label>
+            <label for="editNome">Nome</label>
             <input type="text" id="editNome" required>
           </div>
 
           <div>
             <label for="editCategoria">Categoria</label>
-            <input type="text" id="editCategoria" required>
+            <select id="editCategoria" required>
+              <option value="Filme">Filme</option>
+              <option value="Série">Série</option>
+              <option value="Anime">Anime</option>
+            </select>
           </div>
 
           <div>
-            <label for="editUrl">URL do canal</label>
+            <label for="editUrl">URL</label>
             <input type="text" id="editUrl" required>
           </div>
 
           <div>
-            <label for="editLogo">URL da logo</label>
+            <label for="editLogo">Logo</label>
             <input type="text" id="editLogo">
           </div>
 

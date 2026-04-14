@@ -12,7 +12,7 @@
     <section class="hero">
       <div>
         <h1>Vision Play</h1>
-        <p>Assista aos canais disponíveis para seu acesso.</p>
+        <p>Assista aos conteúdos disponíveis para seu acesso.</p>
       </div>
 
       <div class="hero-actions">
@@ -22,7 +22,7 @@
 
     <section class="stats">
       <div class="stat-card">
-        <span>Total de canais</span>
+        <span>Total de conteúdos</span>
         <strong id="totalCanaisCliente">0</strong>
       </div>
 
@@ -40,13 +40,20 @@
     <section class="channels-card">
       <div class="channels-top">
         <div>
-          <h2>Canais disponíveis</h2>
-          <p>Escolha um canal para assistir.</p>
+          <h2>Catálogo disponível</h2>
+          <p>Escolha uma categoria e assista ao conteúdo desejado.</p>
         </div>
       </div>
 
       <div class="search-box">
-        <input type="text" id="buscaCliente" placeholder="Buscar canal...">
+        <input type="text" id="buscaCliente" placeholder="Buscar conteúdo...">
+      </div>
+
+      <div class="category-filters">
+        <button class="btn btn-filter active" onclick="filtrarCategoria('Todos')">Todos</button>
+        <button class="btn btn-filter" onclick="filtrarCategoria('Filme')">Filme</button>
+        <button class="btn btn-filter" onclick="filtrarCategoria('Série')">Série</button>
+        <button class="btn btn-filter" onclick="filtrarCategoria('Anime')">Anime</button>
       </div>
 
       <div id="listaCanais" class="channel-grid"></div>

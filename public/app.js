@@ -438,6 +438,7 @@ if (window.location.pathname.includes('cliente.html')) {
   const playerTitle = document.getElementById('playerTitle');
 
   let canaisCliente = [];
+  let categoriaAtual = 'Todos';
 
   function atualizarTotalCliente(lista) {
     if (!totalCanaisCliente) return;
@@ -448,10 +449,10 @@ if (window.location.pathname.includes('cliente.html')) {
     if (!listaCanais) return;
 
     listaCanais.innerHTML = '';
-    atualizarTotalCliente(canaisCliente);
+    atualizarTotalCliente(lista);
 
     if (!Array.isArray(lista) || lista.length === 0) {
-      listaCanais.innerHTML = '<div class="empty">Nenhum canal disponível.</div>';
+      listaCanais.innerHTML = '<div class="empty">Nenhum conteúdo disponível.</div>';
       return;
     }
 
@@ -490,30 +491,57 @@ if (window.location.pathname.includes('cliente.html')) {
     });
   }
 
+  function aplicarFiltros() {
+    const termo = buscaCliente ? buscaCliente.value.toLowerCase().trim() : '';
+
+    const filtrados = canaisCliente.filter((canal) => {
+      const bateBusca =
+        canal.nome.toLowerCase().includes(termo) ||
+        canal.categoria.toLowerCase().includes(termo);
+
+      const bateCategoria =
+        categoriaAtual === 'Todos' || canal.categoria === categoriaAtual;
+
+      return bateBusca && bateCategoria;
+    });
+
+    renderizarCanaisCliente(filtrados);
+  }
+
+  window.filtrarCategoria = function (categoria) {
+    categoriaAtual = categoria;
+
+    const botoes = document.querySelectorAll('.btn-filter');
+    botoes.forEach((btn) => btn.classList.remove('active'));
+
+    const botaoAtual = Array.from(botoes).find(
+      (btn) => btn.innerText.trim() === categoria
+    );
+
+    if (botaoAtual) {
+      botaoAtual.classList.add('active');
+    }
+
+    aplicarFiltros();
+  };
+
   async function carregarCanaisCliente() {
     try {
       const response = await fetch('/api/canais');
       const canais = await response.json();
 
       canaisCliente = Array.isArray(canais) ? canais : [];
-      renderizarCanaisCliente(canaisCliente);
+      aplicarFiltros();
     } catch (error) {
       if (listaCanais) {
-        listaCanais.innerHTML = '<div class="empty">Erro ao carregar canais.</div>';
+        listaCanais.innerHTML = '<div class="empty">Erro ao carregar conteúdos.</div>';
       }
     }
   }
 
   if (buscaCliente) {
     buscaCliente.addEventListener('input', () => {
-      const termo = buscaCliente.value.toLowerCase().trim();
-
-      const filtrados = canaisCliente.filter((canal) =>
-        canal.nome.toLowerCase().includes(termo) ||
-        canal.categoria.toLowerCase().includes(termo)
-      );
-
-      renderizarCanaisCliente(filtrados);
+      aplicarFiltros();
     });
   }
 
