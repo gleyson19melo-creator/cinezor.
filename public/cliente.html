@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vision Play</title>
   <link rel="stylesheet" href="/style.css">
 </head>
+
 <body>
   <div class="container">
 
@@ -50,10 +52,13 @@
       </div>
 
       <div class="category-filters">
-        <button class="btn btn-filter active" onclick="filtrarCategoria('Todos')">Todos</button>
-        <button class="btn btn-filter" onclick="filtrarCategoria('Filme')">Filme</button>
-        <button class="btn btn-filter" onclick="filtrarCategoria('Série')">Série</button>
-        <button class="btn btn-filter" onclick="filtrarCategoria('Anime')">Anime</button>
+        <div class="category-filters">
+          <button class="btn btn-filter active" onclick="filtrarCategoria('Todos')">Todos</button>
+          <button class="btn btn-filter" onclick="filtrarCategoria('Filme')">Filme</button>
+          <button class="btn btn-filter" onclick="filtrarCategoria('Série')">Série</button>
+          <button class="btn btn-filter" onclick="filtrarCategoria('Anime')">Anime</button>
+          <button class="btn btn-filter" onclick="filtrarCategoria('Trailer')">Trailer</button>
+        </div>
       </div>
 
       <div id="listaCanais" class="channel-grid"></div>
@@ -69,14 +74,11 @@
       </div>
 
       <div class="modal-content">
-        <video id="videoPlayer" controls playsinline webkit-playsinline style="display:block; width:100%; border-radius:16px;"></video>
+        <video id="videoPlayer" controls playsinline webkit-playsinline
+          style="display:block; width:100%; border-radius:16px;"></video>
 
-        <iframe
-          id="embedFrame"
-          style="display:none; width:100%; height:70vh; border:none; border-radius:16px;"
-          allowfullscreen
-          referrerpolicy="origin"
-        ></iframe>
+        <iframe id="embedFrame" style="display:none; width:100%; height:70vh; border:none; border-radius:16px;"
+          allowfullscreen referrerpolicy="origin"></iframe>
 
         <p class="player-note">Reprodução online com suporte HLS, MP4 e conteúdo incorporado.</p>
       </div>
@@ -86,4 +88,5 @@
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <script src="/app.js"></script>
 </body>
+
 </html>
