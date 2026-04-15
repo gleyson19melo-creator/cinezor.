@@ -69,8 +69,16 @@
       </div>
 
       <div class="modal-content">
-        <video id="videoPlayer" controls playsinline webkit-playsinline></video>
-        <p class="player-note">Reprodução online com suporte HLS.</p>
+        <video id="videoPlayer" controls playsinline webkit-playsinline style="display:block;"></video>
+
+        <iframe
+          id="embedFrame"
+          style="display:none; width:100%; height:70vh; border:none; border-radius:16px;"
+          allowfullscreen
+          referrerpolicy="origin"
+        ></iframe>
+
+        <p class="player-note">Reprodução online com suporte HLS e conteúdo incorporado.</p>
       </div>
     </div>
   </div>

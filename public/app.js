@@ -48,11 +48,29 @@ function destroyHls() {
 }
 
 function playVideoUrl(videoElement, url) {
+  const embedFrame = document.getElementById('embedFrame');
   if (!videoElement) return;
 
   destroyHls();
+
+  if (embedFrame) {
+    embedFrame.style.display = 'none';
+    embedFrame.src = '';
+  }
+
+  videoElement.style.display = 'block';
   videoElement.pause();
   videoElement.removeAttribute('src');
+
+  if (url.includes('/embed/') || url.includes('embedplayapi.site')) {
+    videoElement.style.display = 'none';
+
+    if (embedFrame) {
+      embedFrame.style.display = 'block';
+      embedFrame.src = url;
+    }
+    return;
+  }
 
   if (url.includes('.m3u8')) {
     if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
@@ -67,13 +85,14 @@ function playVideoUrl(videoElement, url) {
         videoElement.play().catch(() => {});
       });
     } else {
-      alert('Seu navegador não suporta esse tipo de canal.');
+      alert('Seu navegador não suporta esse tipo de vídeo.');
     }
-  } else {
-    videoElement.src = url;
-    videoElement.load();
-    videoElement.play().catch(() => {});
+    return;
   }
+
+  videoElement.src = url;
+  videoElement.load();
+  videoElement.play().catch(() => {});
 }
 
 async function logout() {
@@ -282,9 +301,19 @@ if (window.location.pathname.includes('admin.html')) {
   };
 
   window.fecharPlayer = function () {
+    const embedFrame = document.getElementById('embedFrame');
+
     if (!playerModal || !videoPlayer) return;
+
     destroyHls();
     playerModal.classList.remove('active');
+
+    if (embedFrame) {
+      embedFrame.src = '';
+      embedFrame.style.display = 'none';
+    }
+
+    videoPlayer.style.display = 'block';
     videoPlayer.pause();
     videoPlayer.removeAttribute('src');
     videoPlayer.load();
@@ -632,9 +661,19 @@ if (window.location.pathname.includes('cliente.html')) {
   };
 
   window.fecharPlayer = function () {
+    const embedFrame = document.getElementById('embedFrame');
+
     if (!playerModal || !videoPlayer) return;
+
     destroyHls();
     playerModal.classList.remove('active');
+
+    if (embedFrame) {
+      embedFrame.src = '';
+      embedFrame.style.display = 'none';
+    }
+
+    videoPlayer.style.display = 'block';
     videoPlayer.pause();
     videoPlayer.removeAttribute('src');
     videoPlayer.load();

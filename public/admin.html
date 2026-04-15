@@ -143,8 +143,16 @@
       </div>
 
       <div class="modal-content">
-        <video id="videoPlayer" controls playsinline webkit-playsinline></video>
-        <p class="player-note">Player com suporte avançado para MP4 e HLS (.m3u8).</p>
+        <video id="videoPlayer" controls playsinline webkit-playsinline style="display:block;"></video>
+
+        <iframe
+          id="embedFrame"
+          style="display:none; width:100%; height:70vh; border:none; border-radius:16px;"
+          allowfullscreen
+          referrerpolicy="origin"
+        ></iframe>
+
+        <p class="player-note">Player com suporte para MP4, HLS (.m3u8) e conteúdo incorporado.</p>
       </div>
     </div>
   </div>
