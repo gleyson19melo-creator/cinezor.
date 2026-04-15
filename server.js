@@ -9,6 +9,8 @@ const PORT = process.env.PORT || 3000;
 const CHANNELS_FILE = path.join(__dirname, 'canais.json');
 const USERS_FILE = path.join(__dirname, 'usuarios.json');
 
+app.set('trust proxy', 1);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -18,7 +20,8 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: false,
+    secure: true,
+    sameSite: 'none',
     maxAge: 1000 * 60 * 60 * 12
   }
 }));
@@ -65,9 +68,7 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-/* =========================
-   LOGIN / LOGOUT / SESSÃO
-========================= */
+/* LOGIN */
 
 app.post('/api/login', (req, res) => {
   const { usuario, senha } = req.body;
@@ -100,20 +101,7 @@ app.post('/api/logout', (req, res) => {
   });
 });
 
-app.get('/api/session', (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ error: 'Sem sessão ativa.' });
-  }
-
-  res.json({
-    usuario: req.session.user.usuario,
-    tipo: req.session.user.tipo
-  });
-});
-
-/* =========================
-   USUÁRIOS
-========================= */
+/* USUÁRIOS */
 
 app.get('/api/usuarios', requireAdmin, (req, res) => {
   const users = readJson(USERS_FILE).map((user) => ({
@@ -129,68 +117,34 @@ app.post('/api/usuarios', requireAdmin, (req, res) => {
   const { usuario, senha, tipo } = req.body;
 
   if (!usuario || !senha || !tipo) {
-    return res.status(400).json({
-      error: 'Os campos usuário, senha e tipo são obrigatórios.'
-    });
+    return res.status(400).json({ error: 'Preencha todos os campos.' });
   }
 
   const users = readJson(USERS_FILE);
 
-  const userExists = users.some(
-    (user) => user.usuario.toLowerCase() === String(usuario).trim().toLowerCase()
-  );
-
-  if (userExists) {
-    return res.status(400).json({
-      error: 'Esse usuário já existe.'
-    });
-  }
-
-  const newUser = {
+  users.push({
     id: Date.now(),
-    usuario: String(usuario).trim(),
-    senha: String(senha).trim(),
-    tipo: String(tipo).trim().toLowerCase()
-  };
+    usuario,
+    senha,
+    tipo
+  });
 
-  users.push(newUser);
   saveJson(USERS_FILE, users);
 
-  res.status(201).json({
-    message: 'Usuário adicionado com sucesso.',
-    usuario: {
-      id: newUser.id,
-      usuario: newUser.usuario,
-      tipo: newUser.tipo
-    }
-  });
+  res.status(201).json({ message: 'Usuário criado com sucesso.' });
 });
 
 app.delete('/api/usuarios/:id', requireAdmin, (req, res) => {
   const id = Number(req.params.id);
   const users = readJson(USERS_FILE);
 
-  const userToDelete = users.find((user) => user.id === id);
-
-  if (!userToDelete) {
-    return res.status(404).json({ error: 'Usuário não encontrado.' });
-  }
-
-  if (userToDelete.tipo === 'admin') {
-    return res.status(400).json({
-      error: 'Não é permitido excluir um usuário admin por aqui.'
-    });
-  }
-
-  const filtered = users.filter((user) => user.id !== id);
+  const filtered = users.filter((u) => u.id !== id);
   saveJson(USERS_FILE, filtered);
 
   res.json({ message: 'Usuário removido com sucesso.' });
 });
 
-/* =========================
-   CANAIS
-========================= */
+/* CANAIS */
 
 app.get('/api/canais', requireAuth, (req, res) => {
   res.json(readJson(CHANNELS_FILE));
@@ -209,10 +163,10 @@ app.post('/api/canais', requireAdmin, (req, res) => {
 
   const newChannel = {
     id: Date.now(),
-    nome: String(nome).trim(),
-    categoria: String(categoria).trim(),
-    url: String(url).trim(),
-    logo: logo ? String(logo).trim() : '',
+    nome,
+    categoria,
+    url,
+    logo: logo || '',
     status: 'online',
     criadoEm: new Date().toISOString()
   };
@@ -221,90 +175,60 @@ app.post('/api/canais', requireAdmin, (req, res) => {
   saveJson(CHANNELS_FILE, channels);
 
   res.status(201).json({
-    message: 'Canal adicionado com sucesso.',
-    canal: newChannel
+    message: 'Conteúdo adicionado com sucesso.'
   });
 });
 
 app.put('/api/canais/:id', requireAdmin, (req, res) => {
   const id = Number(req.params.id);
-  const { nome, categoria, url, logo } = req.body;
-
-  if (!nome || !categoria || !url) {
-    return res.status(400).json({
-      error: 'Os campos nome, categoria e url são obrigatórios.'
-    });
-  }
-
   const channels = readJson(CHANNELS_FILE);
-  const index = channels.findIndex((channel) => channel.id === id);
+
+  const index = channels.findIndex((c) => c.id === id);
 
   if (index === -1) {
-    return res.status(404).json({ error: 'Canal não encontrado.' });
+    return res.status(404).json({ error: 'Conteúdo não encontrado.' });
   }
 
   channels[index] = {
     ...channels[index],
-    nome: String(nome).trim(),
-    categoria: String(categoria).trim(),
-    url: String(url).trim(),
-    logo: logo ? String(logo).trim() : '',
-    atualizadoEm: new Date().toISOString()
+    ...req.body
   };
 
   saveJson(CHANNELS_FILE, channels);
 
-  res.json({
-    message: 'Canal atualizado com sucesso.',
-    canal: channels[index]
-  });
+  res.json({ message: 'Conteúdo atualizado com sucesso.' });
 });
 
 app.delete('/api/canais/:id', requireAdmin, (req, res) => {
   const id = Number(req.params.id);
   const channels = readJson(CHANNELS_FILE);
-  const filtered = channels.filter((channel) => channel.id !== id);
 
-  if (filtered.length === channels.length) {
-    return res.status(404).json({ error: 'Canal não encontrado.' });
-  }
-
+  const filtered = channels.filter((c) => c.id !== id);
   saveJson(CHANNELS_FILE, filtered);
-  res.json({ message: 'Canal removido com sucesso.' });
+
+  res.json({ message: 'Conteúdo removido com sucesso.' });
 });
 
-/* =========================
-   PÁGINAS PROTEGIDAS
-========================= */
+/* PÁGINAS */
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/admin.html', (req, res) => {
-  if (!req.session.user) {
-    return res.redirect('/');
-  }
-
-  if (req.session.user.tipo !== 'admin') {
-    return res.redirect('/cliente.html');
-  }
+  if (!req.session.user) return res.redirect('/');
+  if (req.session.user.tipo !== 'admin') return res.redirect('/cliente.html');
 
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 app.get('/cliente.html', (req, res) => {
-  if (!req.session.user) {
-    return res.redirect('/');
-  }
-
-  if (req.session.user.tipo !== 'cliente') {
-    return res.redirect('/admin.html');
-  }
+  if (!req.session.user) return res.redirect('/');
+  if (req.session.user.tipo !== 'cliente') return res.redirect('/admin.html');
 
   res.sendFile(path.join(__dirname, 'public', 'cliente.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
