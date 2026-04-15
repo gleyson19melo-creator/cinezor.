@@ -10,6 +10,7 @@ async function login(event) {
   try {
     const response = await fetch('/api/login', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ usuario, senha })
     });
@@ -80,7 +81,8 @@ async function logout() {
 
   try {
     await fetch('/api/logout', {
-      method: 'POST'
+      method: 'POST',
+      credentials: 'include'
     });
   } catch (error) {}
 
@@ -214,7 +216,9 @@ if (window.location.pathname.includes('admin.html')) {
 
   async function carregarCanais() {
     try {
-      const response = await fetch('/api/canais');
+      const response = await fetch('/api/canais', {
+        credentials: 'include'
+      });
 
       if (response.status === 401) {
         window.location.href = '/';
@@ -237,7 +241,9 @@ if (window.location.pathname.includes('admin.html')) {
 
   async function carregarUsuarios() {
     try {
-      const response = await fetch('/api/usuarios');
+      const response = await fetch('/api/usuarios', {
+        credentials: 'include'
+      });
 
       if (response.status === 401) {
         window.location.href = '/';
@@ -310,7 +316,10 @@ if (window.location.pathname.includes('admin.html')) {
 
   window.removerCanal = async function (id) {
     try {
-      const response = await fetch(`/api/canais/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/canais/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
       const data = await response.json();
 
       if (response.status === 401) {
@@ -332,7 +341,10 @@ if (window.location.pathname.includes('admin.html')) {
 
   window.removerUsuario = async function (id) {
     try {
-      const response = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/usuarios/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
       const data = await response.json();
 
       if (response.status === 401) {
@@ -366,6 +378,7 @@ if (window.location.pathname.includes('admin.html')) {
       try {
         const response = await fetch('/api/canais', {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
@@ -407,6 +420,7 @@ if (window.location.pathname.includes('admin.html')) {
       try {
         const response = await fetch(`/api/canais/${id}`, {
           method: 'PUT',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
@@ -445,6 +459,7 @@ if (window.location.pathname.includes('admin.html')) {
       try {
         const response = await fetch('/api/usuarios', {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
@@ -576,7 +591,9 @@ if (window.location.pathname.includes('cliente.html')) {
 
   async function carregarCanaisCliente() {
     try {
-      const response = await fetch('/api/canais');
+      const response = await fetch('/api/canais', {
+        credentials: 'include'
+      });
 
       if (response.status === 401) {
         window.location.href = '/';
