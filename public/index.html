@@ -26,7 +26,71 @@
         <button type="submit" class="btn btn-primary">Entrar</button>
       </form>
 
+      <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+        <button type="button" class="btn btn-primary" onclick="abrirCadastro()" style="flex:1;">
+          Criar conta
+        </button>
+
+        <button type="button" class="btn btn-edit" onclick="abrirEsqueciSenha()" style="flex:1;">
+          Esqueci minha senha
+        </button>
+      </div>
+
       <div id="loginMessage" class="message"></div>
+    </div>
+  </div>
+
+  <div id="cadastroModal" class="modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Criar conta</h3>
+        <button class="close-btn" onclick="fecharCadastro()">Fechar</button>
+      </div>
+
+      <div class="modal-content">
+        <form id="registerForm" class="edit-form">
+          <div>
+            <label for="registerUser">Usuário</label>
+            <input type="text" id="registerUser" placeholder="Digite seu usuário" required>
+          </div>
+
+          <div>
+            <label for="registerPass">Senha</label>
+            <input type="password" id="registerPass" placeholder="Digite sua senha" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Cadastrar</button>
+        </form>
+
+        <div id="registerMessage" class="message"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="forgotModal" class="modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Redefinir senha</h3>
+        <button class="close-btn" onclick="fecharEsqueciSenha()">Fechar</button>
+      </div>
+
+      <div class="modal-content">
+        <form id="forgotForm" class="edit-form">
+          <div>
+            <label for="forgotUser">Usuário</label>
+            <input type="text" id="forgotUser" placeholder="Digite seu usuário" required>
+          </div>
+
+          <div>
+            <label for="newPass">Nova senha</label>
+            <input type="password" id="newPass" placeholder="Digite a nova senha" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Salvar nova senha</button>
+        </form>
+
+        <div id="forgotMessage" class="message"></div>
+      </div>
     </div>
   </div>
 

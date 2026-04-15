@@ -42,6 +42,105 @@ async function login(event) {
   }
 }
 
+// =========================
+// CADASTRO E ESQUECI SENHA
+// =========================
+window.abrirCadastro = function () {
+  const modal = document.getElementById('cadastroModal');
+  if (modal) modal.classList.add('active');
+};
+
+window.fecharCadastro = function () {
+  const modal = document.getElementById('cadastroModal');
+  if (modal) modal.classList.remove('active');
+};
+
+window.abrirEsqueciSenha = function () {
+  const modal = document.getElementById('forgotModal');
+  if (modal) modal.classList.add('active');
+};
+
+window.fecharEsqueciSenha = function () {
+  const modal = document.getElementById('forgotModal');
+  if (modal) modal.classList.remove('active');
+};
+
+async function cadastrarCliente(event) {
+  event.preventDefault();
+
+  const usuario = document.getElementById('registerUser')?.value.trim();
+  const senha = document.getElementById('registerPass')?.value.trim();
+  const registerMessage = document.getElementById('registerMessage');
+
+  try {
+    const response = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario, senha })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (registerMessage) {
+        registerMessage.textContent = data.error || 'Erro ao cadastrar.';
+        registerMessage.className = 'message error';
+      }
+      return;
+    }
+
+    if (registerMessage) {
+      registerMessage.textContent = data.message || 'Cadastro realizado com sucesso.';
+      registerMessage.className = 'message success';
+    }
+
+    document.getElementById('registerForm')?.reset();
+  } catch (error) {
+    if (registerMessage) {
+      registerMessage.textContent = 'Erro ao conectar com o servidor.';
+      registerMessage.className = 'message error';
+    }
+  }
+}
+
+async function redefinirSenha(event) {
+  event.preventDefault();
+
+  const usuario = document.getElementById('forgotUser')?.value.trim();
+  const novaSenha = document.getElementById('newPass')?.value.trim();
+  const forgotMessage = document.getElementById('forgotMessage');
+
+  try {
+    const response = await fetch('/api/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario, novaSenha })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (forgotMessage) {
+        forgotMessage.textContent = data.error || 'Erro ao redefinir senha.';
+        forgotMessage.className = 'message error';
+      }
+      return;
+    }
+
+    if (forgotMessage) {
+      forgotMessage.textContent = data.message || 'Senha atualizada com sucesso.';
+      forgotMessage.className = 'message success';
+    }
+
+    document.getElementById('forgotForm')?.reset();
+  } catch (error) {
+    if (forgotMessage) {
+      forgotMessage.textContent = 'Erro ao conectar com o servidor.';
+      forgotMessage.className = 'message error';
+    }
+  }
+}
+
 // Destrói player HLS antigo para evitar conflito
 function destroyHls() {
   if (hlsPlayer) {
@@ -145,6 +244,14 @@ async function logout() {
 // Ativa login se estiver na tela inicial
 if (document.getElementById('loginForm')) {
   document.getElementById('loginForm').addEventListener('submit', login);
+}
+
+if (document.getElementById('registerForm')) {
+  document.getElementById('registerForm').addEventListener('submit', cadastrarCliente);
+}
+
+if (document.getElementById('forgotForm')) {
+  document.getElementById('forgotForm').addEventListener('submit', redefinirSenha);
 }
 
 /* =========================

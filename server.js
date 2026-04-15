@@ -216,6 +216,56 @@ app.post('/api/logout', (req, res) => {
 });
 
 /* =========================
+   CADASTRO E RECUPERAÇÃO
+========================= */
+
+app.post('/api/register', (req, res) => {
+  const { usuario, senha } = req.body;
+
+  if (!usuario || !senha) {
+    return res.status(400).json({ error: 'Preencha usuário e senha.' });
+  }
+
+  const users = readJson(USERS_FILE);
+
+  const existe = users.find((user) => user.usuario === usuario);
+  if (existe) {
+    return res.status(400).json({ error: 'Esse usuário já existe.' });
+  }
+
+  users.push({
+    id: Date.now(),
+    usuario,
+    senha,
+    tipo: 'cliente'
+  });
+
+  saveJson(USERS_FILE, users);
+
+  res.status(201).json({ message: 'Conta criada com sucesso.' });
+});
+
+app.post('/api/reset-password', (req, res) => {
+  const { usuario, novaSenha } = req.body;
+
+  if (!usuario || !novaSenha) {
+    return res.status(400).json({ error: 'Preencha usuário e nova senha.' });
+  }
+
+  const users = readJson(USERS_FILE);
+  const index = users.findIndex((user) => user.usuario === usuario);
+
+  if (index === -1) {
+    return res.status(404).json({ error: 'Usuário não encontrado.' });
+  }
+
+  users[index].senha = novaSenha;
+  saveJson(USERS_FILE, users);
+
+  res.json({ message: 'Senha redefinida com sucesso.' });
+});
+
+/* =========================
    USUÁRIOS
 ========================= */
 
