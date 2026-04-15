@@ -53,10 +53,22 @@ body {
   box-shadow: 0 10px 28px rgba(0,0,0,0.18);
 }
 
+/* LOGO */
+.site-logo{
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 14px;
+  border-radius: 24px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+}
+
 .login-card h1 {
   font-size: 34px;
   margin-bottom: 8px;
   font-weight: 800;
+  text-align: center;
 }
 
 .login-card p {
@@ -64,6 +76,7 @@ body {
   margin-bottom: 20px;
   line-height: 1.5;
   font-size: 14px;
+  text-align: center;
 }
 
 .hero {
