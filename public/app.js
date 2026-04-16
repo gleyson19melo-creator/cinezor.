@@ -337,7 +337,7 @@ if (window.location.pathname.includes('admin.html')) {
           <div class="channel-actions">
             <button class="btn btn-watch" onclick="assistirCanal('${nomeSeguro}', '${urlSegura}')">Trailer</button>
             <button class="btn btn-edit" onclick='abrirEdicao(${canalJson})'>Editar</button>
-            <button class="btn btn-danger" onclick="removerCanal(${canal.id})">Excluir</button>
+            <button class="btn btn-danger" onclick="removerCanal('${canal.id}')">Excluir</button>
           </div>
         </div>
       `;
