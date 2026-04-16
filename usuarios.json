@@ -1,14 +1,20 @@
 [
   {
-  "id": 1,
+    "id": 1,
     "usuario": "Gleyson",
-    "senha": "302016Ew",
+    "senha": "$2b$10$Vy8ctlhzdLjpIMs0JUFTVeHalvCZBi2AFULhyCFBbsvHUG.grNsxq",
     "tipo": "admin"
   },
   {
     "id": 1776191501009,
     "usuario": "cliente01",
     "senha": "Cliente@123",
+    "tipo": "cliente"
+  },
+  {
+    "id": 1776360449980,
+    "usuario": "teste",
+    "senha": "$2b$10$aCV7D5sHJMaD8WUYBBM2i.kk/G.9dl8xCpOgNTzavDi7C29kLj3DC",
     "tipo": "cliente"
   }
 ]

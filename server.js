@@ -5,6 +5,7 @@ const session = require('express-session');
 const http = require('http');
 const https = require('https');
 const bcrypt = require('bcryptjs');
+const db = require('./firebase');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,7 +24,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 1000 * 60 * 60 * 12
   }
@@ -198,14 +199,11 @@ app.post('/api/login', async (req, res) => {
   const foundUser = users[userIndex];
   let senhaValida = false;
 
-  // Caso novo: senha com hash bcrypt
   if (typeof foundUser.senha === 'string' && foundUser.senha.startsWith('$2')) {
     senhaValida = await bcrypt.compare(senha, foundUser.senha);
   } else {
-    // Caso antigo: senha salva em texto puro
     senhaValida = foundUser.senha === senha;
 
-    // Migra automaticamente para hash se login antigo deu certo
     if (senhaValida) {
       users[userIndex].senha = await bcrypt.hash(senha, 10);
       saveJson(USERS_FILE, users);
@@ -352,75 +350,97 @@ app.delete('/api/usuarios/:id', requireAdmin, (req, res) => {
 });
 
 /* =========================
-   CONTEÚDOS
+   CONTEÚDOS - FIRESTORE
 ========================= */
 
-app.get('/api/canais', requireAuth, (req, res) => {
-  res.json(readJson(CHANNELS_FILE));
+app.get('/api/canais', requireAuth, async (req, res) => {
+  try {
+    const snapshot = await db.collection('canais').get();
+
+    const canais = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    res.json(canais);
+  } catch (error) {
+    console.error('Erro ao listar conteúdos:', error);
+    res.status(500).json({ error: 'Erro ao listar conteúdos.' });
+  }
 });
 
-app.post('/api/canais', requireAdmin, (req, res) => {
-  const { nome, categoria, url, logo, sinopse, oficial } = req.body;
+app.post('/api/canais', requireAdmin, async (req, res) => {
+  try {
+    const { nome, categoria, url, logo, sinopse, oficial } = req.body;
 
-  if (!nome || !categoria || !url) {
-    return res.status(400).json({
-      error: 'Os campos nome, categoria e url são obrigatórios.'
+    if (!nome || !categoria || !url) {
+      return res.status(400).json({
+        error: 'Os campos nome, categoria e url são obrigatórios.'
+      });
+    }
+
+    const novoCanal = {
+      nome,
+      categoria,
+      url,
+      logo: logo || '',
+      sinopse: sinopse || '',
+      oficial: oficial || '',
+      status: 'online',
+      criadoEm: new Date().toISOString()
+    };
+
+    const docRef = await db.collection('canais').add(novoCanal);
+
+    res.status(201).json({
+      message: 'Conteúdo adicionado com sucesso.',
+      id: docRef.id
     });
+  } catch (error) {
+    console.error('Erro ao adicionar conteúdo:', error);
+    res.status(500).json({ error: 'Erro ao adicionar conteúdo.' });
   }
-
-  const channels = readJson(CHANNELS_FILE);
-
-  const newChannel = {
-    id: Date.now(),
-    nome,
-    categoria,
-    url,
-    logo: logo || '',
-    sinopse: sinopse || '',
-    oficial: oficial || '',
-    status: 'online',
-    criadoEm: new Date().toISOString()
-  };
-
-  channels.push(newChannel);
-  saveJson(CHANNELS_FILE, channels);
-
-  res.status(201).json({
-    message: 'Conteúdo adicionado com sucesso.'
-  });
 });
 
-app.put('/api/canais/:id', requireAdmin, (req, res) => {
-  const id = Number(req.params.id);
-  const channels = readJson(CHANNELS_FILE);
+app.put('/api/canais/:id', requireAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const docRef = db.collection('canais').doc(id);
+    const docSnap = await docRef.get();
 
-  const index = channels.findIndex((c) => c.id === id);
+    if (!docSnap.exists) {
+      return res.status(404).json({ error: 'Conteúdo não encontrado.' });
+    }
 
-  if (index === -1) {
-    return res.status(404).json({ error: 'Conteúdo não encontrado.' });
+    const atual = docSnap.data();
+
+    const atualizado = {
+      ...atual,
+      ...req.body,
+      logo: req.body.logo ?? atual.logo,
+      sinopse: req.body.sinopse ?? atual.sinopse,
+      oficial: req.body.oficial ?? atual.oficial
+    };
+
+    await docRef.set(atualizado);
+
+    res.json({ message: 'Conteúdo atualizado com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao atualizar conteúdo:', error);
+    res.status(500).json({ error: 'Erro ao atualizar conteúdo.' });
   }
-
-  channels[index] = {
-    ...channels[index],
-    ...req.body,
-    logo: req.body.logo ?? channels[index].logo,
-    sinopse: req.body.sinopse ?? channels[index].sinopse,
-    oficial: req.body.oficial ?? channels[index].oficial
-  };
-
-  saveJson(CHANNELS_FILE, channels);
-
-  res.json({ message: 'Conteúdo atualizado com sucesso.' });
 });
 
-app.delete('/api/canais/:id', requireAdmin, (req, res) => {
-  const id = Number(req.params.id);
-  const channels = readJson(CHANNELS_FILE);
+app.delete('/api/canais/:id', requireAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    await db.collection('canais').doc(id).delete();
 
-  const filtered = channels.filter((c) => c.id !== id);
-  saveJson(CHANNELS_FILE, filtered);
-
-  res.json({ message: 'Conteúdo removido com sucesso.' });
+    res.json({ message: 'Conteúdo removido com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao remover conteúdo:', error);
+    res.status(500).json({ error: 'Erro ao remover conteúdo.' });
+  }
 });
 
 /* =========================
