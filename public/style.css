@@ -239,12 +239,18 @@ form {
   gap: 12px;
 }
 
+/* PADRÃO DO SITE */
 label {
   font-size: 13px;
   font-weight: 700;
-  color: #ffffff;
+  color: #374151;
   margin-bottom: 6px;
   display: block;
+}
+
+/* SOMENTE NO LOGIN */
+.login-card label {
+  color: #ffffff;
 }
 
 input,
