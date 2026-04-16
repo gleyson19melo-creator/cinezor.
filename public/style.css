@@ -35,32 +35,41 @@ body {
 
 /* LATERAIS MAIS ATRATIVAS */
 body::before,
-body::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  width: 280px;
-  height: 100vh;
-  z-index: 0;
-  opacity: 0.18;
-  pointer-events: none;
-  filter: blur(2px);
-  background-size: cover;
-  background-position: center;
+body::after{
+  content:"";
+  position:fixed;
+  top:0;
+  width:320px;
+  height:100vh;
+  z-index:0;
+  opacity:.22;
+  pointer-events:none;
+  filter:blur(2px);
+  background-repeat:no-repeat;
 }
 
-body::before {
-  left: 0;
+/* ESQUERDA */
+body::before{
+  left:0;
   background-image:
-    linear-gradient(to right, rgba(11,18,32,0.95), rgba(11,18,32,0.35)),
-    url('https://image.tmdb.org/t/p/w500/q719jXXEzOoYaps6babgKnONONX.jpg');
+    linear-gradient(to right, rgba(11,18,32,.96), rgba(11,18,32,.30)),
+    url("https://image.tmdb.org/t/p/w500/q719jXXEzOoYaps6babgKnONONX.jpg"),
+    url("https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"),
+    url("https://image.tmdb.org/t/p/w500/uPj8C5zq6Nf2YQ2Qx6tQ2YSmW8a.jpg");
+  background-size: cover, 100% 33%, 100% 33%, 100% 34%;
+  background-position: center, top, center, bottom;
 }
 
-body::after {
-  right: 0;
+/* DIREITA */
+body::after{
+  right:0;
   background-image:
-    linear-gradient(to left, rgba(15,23,42,0.95), rgba(15,23,42,0.35)),
-    url('https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg');
+    linear-gradient(to left, rgba(15,23,42,.96), rgba(15,23,42,.30)),
+    url("https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"),
+    url("https://image.tmdb.org/t/p/w500/q719jXXEzOoYaps6babgKnONONX.jpg"),
+    url("https://image.tmdb.org/t/p/w500/uPj8C5zq6Nf2YQ2Qx6tQ2YSmW8a.jpg");
+  background-size: cover, 100% 33%, 100% 33%, 100% 34%;
+  background-position: center, top, center, bottom;
 }
 
 .container,
