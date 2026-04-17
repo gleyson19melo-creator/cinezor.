@@ -995,10 +995,6 @@ if (window.location.pathname.includes('cliente.html')) {
       return url.replace('/view', '/preview');
     }
 
-    if (url.toLowerCase().includes('.pdf')) {
-      return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(url)}`;
-    }
-
     return url;
   }
 
