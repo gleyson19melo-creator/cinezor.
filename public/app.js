@@ -960,6 +960,7 @@ if (window.location.pathname.includes('admin.html')) {
 if (window.location.pathname.includes('cliente.html')) {
   const listaCanais = document.getElementById('listaCanais');
   const buscaCliente = document.getElementById('buscaCliente');
+  const buscaLivrosCliente = document.getElementById('buscaLivrosCliente');
   const totalCanaisCliente = document.getElementById('totalCanaisCliente');
 
   const playerModal = document.getElementById('playerModal');
@@ -992,6 +993,10 @@ if (window.location.pathname.includes('cliente.html')) {
 
     if (url.includes('drive.google.com/file/d/') && url.includes('/view')) {
       return url.replace('/view', '/preview');
+    }
+
+    if (url.toLowerCase().includes('.pdf')) {
+      return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(url)}`;
     }
 
     return url;
@@ -1111,6 +1116,7 @@ if (window.location.pathname.includes('cliente.html')) {
 
   function aplicarFiltros() {
     const termo = buscaCliente ? buscaCliente.value.toLowerCase().trim() : '';
+    const termoLivro = buscaLivrosCliente ? buscaLivrosCliente.value.toLowerCase().trim() : '';
 
     const conteudosFiltrados = canaisCliente.filter((canal) => {
       const bateBusca =
@@ -1124,15 +1130,21 @@ if (window.location.pathname.includes('cliente.html')) {
     });
 
     const livrosFiltrados = livrosCliente.filter((livro) => {
-      const bateBusca =
+      const buscaNormal =
         (livro.titulo || '').toLowerCase().includes(termo) ||
         (livro.autor || '').toLowerCase().includes(termo) ||
         (livro.categoria || '').toLowerCase().includes(termo);
 
+      const buscaLivro =
+        !termoLivro ||
+        (livro.titulo || '').toLowerCase().includes(termoLivro) ||
+        (livro.autor || '').toLowerCase().includes(termoLivro) ||
+        (livro.categoria || '').toLowerCase().includes(termoLivro);
+
       const bateCategoria =
         categoriaAtual === 'Todos' || categoriaAtual === 'Livro';
 
-      return bateBusca && bateCategoria;
+      return buscaNormal && buscaLivro && bateCategoria;
     });
 
     renderizarCatalogoCliente(conteudosFiltrados, livrosFiltrados);
@@ -1208,6 +1220,12 @@ if (window.location.pathname.includes('cliente.html')) {
 
   if (buscaCliente) {
     buscaCliente.addEventListener('input', () => {
+      aplicarFiltros();
+    });
+  }
+
+  if (buscaLivrosCliente) {
+    buscaLivrosCliente.addEventListener('input', () => {
       aplicarFiltros();
     });
   }
