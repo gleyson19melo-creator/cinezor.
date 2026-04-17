@@ -32,6 +32,11 @@
       </div>
 
       <div class="stat-card">
+        <span>Total de livros</span>
+        <strong id="totalLivros">0</strong>
+      </div>
+
+      <div class="stat-card">
         <span>Total de usuários</span>
         <strong id="totalUsuarios">0</strong>
       </div>
@@ -85,7 +90,7 @@
       </div>
     </section>
 
-    <section class="layout">
+    <section class="layout" style="margin-bottom:22px;">
       <div class="panel-card">
         <h2>Adicionar conteúdo</h2>
         <p class="subtitle">Cadastre filmes, séries, animes e trailers para os clientes.</p>
@@ -162,6 +167,74 @@
       </div>
     </section>
 
+    <section class="layout">
+      <div class="panel-card">
+        <h2>Adicionar livro</h2>
+        <p class="subtitle">Cadastre livros de forma profissional na plataforma.</p>
+
+        <form id="bookForm">
+          <div>
+            <label>Título do livro</label>
+            <input type="text" id="livroTitulo" placeholder="Ex: Pai Rico Pai Pobre" required>
+          </div>
+
+          <div>
+            <label>Autor</label>
+            <input type="text" id="livroAutor" placeholder="Ex: Robert Kiyosaki" required>
+          </div>
+
+          <div>
+            <label>Categoria</label>
+            <select id="livroCategoria" required>
+              <option value="">Selecione</option>
+              <option value="Finanças">Finanças</option>
+              <option value="Romance">Romance</option>
+              <option value="Terror">Terror</option>
+              <option value="Ficção">Ficção</option>
+              <option value="Estudo">Estudo</option>
+              <option value="Motivacional">Motivacional</option>
+              <option value="HQ">HQ</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Capa do livro</label>
+            <input type="text" id="livroCapa" placeholder="https://...">
+          </div>
+
+          <div>
+            <label>Descrição</label>
+            <textarea id="livroDescricao" rows="4" placeholder="Digite a descrição do livro"></textarea>
+          </div>
+
+          <div>
+            <label>Link do livro</label>
+            <input type="text" id="livroLink" placeholder="https://..." required>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Adicionar livro</button>
+        </form>
+
+        <div id="bookMessage" class="message"></div>
+      </div>
+
+      <div class="channels-card">
+        <div class="channels-top">
+          <div>
+            <h2>Livros cadastrados</h2>
+            <p>Gerencie os livros disponíveis na plataforma.</p>
+          </div>
+        </div>
+
+        <div class="search-box">
+          <input type="text" id="buscaLivros" placeholder="Buscar por título, autor ou categoria...">
+        </div>
+
+        <div id="listaLivros" class="channel-grid"></div>
+      </div>
+    </section>
+
   </div>
 
   <div id="playerModal" class="modal">
@@ -235,6 +308,64 @@
 
           <button type="submit" class="btn btn-primary">Salvar alterações</button>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="editBookModal" class="modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Editar livro</h3>
+        <button class="close-btn" onclick="fecharEdicaoLivro()">Fechar</button>
+      </div>
+
+      <div class="modal-content">
+        <form id="editBookForm" class="edit-form">
+          <input type="hidden" id="editLivroId">
+
+          <div>
+            <label for="editLivroTitulo">Título</label>
+            <input type="text" id="editLivroTitulo" required>
+          </div>
+
+          <div>
+            <label for="editLivroAutor">Autor</label>
+            <input type="text" id="editLivroAutor" required>
+          </div>
+
+          <div>
+            <label for="editLivroCategoria">Categoria</label>
+            <select id="editLivroCategoria" required>
+              <option value="Finanças">Finanças</option>
+              <option value="Romance">Romance</option>
+              <option value="Terror">Terror</option>
+              <option value="Ficção">Ficção</option>
+              <option value="Estudo">Estudo</option>
+              <option value="Motivacional">Motivacional</option>
+              <option value="HQ">HQ</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="editLivroCapa">Capa</label>
+            <input type="text" id="editLivroCapa" placeholder="https://...">
+          </div>
+
+          <div>
+            <label for="editLivroDescricao">Descrição</label>
+            <textarea id="editLivroDescricao" rows="4" placeholder="Digite a descrição do livro"></textarea>
+          </div>
+
+          <div>
+            <label for="editLivroLink">Link do livro</label>
+            <input type="text" id="editLivroLink" placeholder="https://..." required>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Salvar alterações</button>
+        </form>
+
+        <div id="editBookMessage" class="message"></div>
       </div>
     </div>
   </div>

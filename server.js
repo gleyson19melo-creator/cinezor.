@@ -483,6 +483,129 @@ app.delete('/api/canais/:id', requireAdmin, async (req, res) => {
 });
 
 /* =========================
+   LIVROS - FIRESTORE
+========================= */
+
+app.get('/api/livros', requireAuth, async (req, res) => {
+  try {
+    const snapshot = await db.collection('livros').get();
+
+    const livros = snapshot.docs.map((doc) => {
+      const data = doc.data();
+
+      return {
+        id: doc.id,
+        ...data,
+        titulo: data.titulo || '',
+        autor: data.autor || '',
+        categoria: data.categoria || '',
+        capa: data.capa || '',
+        descricao: data.descricao || '',
+        link: data.link || '',
+        status: data.status || 'online',
+        criadoEm: data.criadoEm || ''
+      };
+    });
+
+    res.json(livros);
+  } catch (error) {
+    console.error('Erro ao listar livros:', error);
+    res.status(500).json({ error: 'Erro ao listar livros.' });
+  }
+});
+
+app.post('/api/livros', requireAdmin, async (req, res) => {
+  try {
+    const {
+      titulo,
+      autor,
+      categoria,
+      capa,
+      descricao,
+      link
+    } = req.body;
+
+    if (!titulo || !autor || !categoria || !link) {
+      return res.status(400).json({
+        error: 'Os campos título, autor, categoria e link são obrigatórios.'
+      });
+    }
+
+    const novoLivro = {
+      titulo: titulo.trim(),
+      autor: autor.trim(),
+      categoria: categoria.trim(),
+      capa: capa || '',
+      descricao: descricao || '',
+      link: link.trim(),
+      status: 'online',
+      criadoEm: new Date().toISOString()
+    };
+
+    const docRef = await db.collection('livros').add(novoLivro);
+
+    res.status(201).json({
+      message: 'Livro adicionado com sucesso.',
+      id: docRef.id
+    });
+  } catch (error) {
+    console.error('Erro ao adicionar livro:', error);
+    res.status(500).json({ error: 'Erro ao adicionar livro.' });
+  }
+});
+
+app.put('/api/livros/:id', requireAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const docRef = db.collection('livros').doc(id);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+      return res.status(404).json({ error: 'Livro não encontrado.' });
+    }
+
+    const atual = docSnap.data();
+
+    const atualizado = {
+      ...atual,
+      ...req.body,
+      titulo: req.body.titulo ?? atual.titulo ?? '',
+      autor: req.body.autor ?? atual.autor ?? '',
+      categoria: req.body.categoria ?? atual.categoria ?? '',
+      capa: req.body.capa ?? atual.capa ?? '',
+      descricao: req.body.descricao ?? atual.descricao ?? '',
+      link: req.body.link ?? atual.link ?? '',
+      status: req.body.status ?? atual.status ?? 'online'
+    };
+
+    if (!atualizado.titulo || !atualizado.autor || !atualizado.categoria || !atualizado.link) {
+      return res.status(400).json({
+        error: 'Os campos título, autor, categoria e link são obrigatórios.'
+      });
+    }
+
+    await docRef.set(atualizado);
+
+    res.json({ message: 'Livro atualizado com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao atualizar livro:', error);
+    res.status(500).json({ error: 'Erro ao atualizar livro.' });
+  }
+});
+
+app.delete('/api/livros/:id', requireAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    await db.collection('livros').doc(id).delete();
+
+    res.json({ message: 'Livro removido com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao remover livro:', error);
+    res.status(500).json({ error: 'Erro ao remover livro.' });
+  }
+});
+
+/* =========================
    PÁGINAS
 ========================= */
 
