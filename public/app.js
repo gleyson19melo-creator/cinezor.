@@ -966,6 +966,10 @@ if (window.location.pathname.includes('cliente.html')) {
   const videoPlayer = document.getElementById('videoPlayer');
   const playerTitle = document.getElementById('playerTitle');
 
+  const bookModal = document.getElementById('bookModal');
+  const bookFrame = document.getElementById('bookFrame');
+  const bookTitle = document.getElementById('bookTitle');
+
   let canaisCliente = [];
   let livrosCliente = [];
   let categoriaAtual = 'Todos';
@@ -981,6 +985,16 @@ if (window.location.pathname.includes('cliente.html')) {
 
   function obterVideoUrl(canal) {
     return canal.videoUrl || '';
+  }
+
+  function converterLinkLivro(url) {
+    if (!url) return '';
+
+    if (url.includes('drive.google.com/file/d/') && url.includes('/view')) {
+      return url.replace('/view', '/preview');
+    }
+
+    return url;
   }
 
   function renderizarCatalogoCliente(listaConteudos, listaLivros) {
@@ -1057,6 +1071,8 @@ if (window.location.pathname.includes('cliente.html')) {
         : 'https://via.placeholder.com/600x340?text=Sem+Capa';
 
       const linkLivro = livro.link?.trim() ? livro.link : '#';
+      const tituloSeguro = String(livro.titulo || '').replace(/'/g, "\\'");
+      const linkSeguro = String(linkLivro).replace(/'/g, "\\'");
 
       const card = document.createElement('div');
       card.className = 'channel-card';
@@ -1082,9 +1098,9 @@ if (window.location.pathname.includes('cliente.html')) {
           </div>
 
           <div class="channel-actions">
-            <a class="btn btn-watch" href="${linkLivro}" target="_blank" rel="noopener noreferrer">
+            <button class="btn btn-watch" onclick="abrirLivroCliente('${tituloSeguro}', '${linkSeguro}')">
               Ler
-            </a>
+            </button>
           </div>
         </div>
       `;
@@ -1208,6 +1224,22 @@ if (window.location.pathname.includes('cliente.html')) {
     playerTitle.textContent = `${nome} - Assistir`;
     playerModal.classList.add('active');
     playVideoUrl(videoPlayer, url);
+  };
+
+  window.abrirLivroCliente = function (titulo, url) {
+    if (!bookModal || !bookFrame || !bookTitle || !url) return;
+
+    const linkFinal = converterLinkLivro(url);
+    bookTitle.textContent = titulo ? `${titulo} - Leitura` : 'Leitura';
+    bookFrame.src = linkFinal;
+    bookModal.classList.add('active');
+  };
+
+  window.fecharLivro = function () {
+    if (!bookModal || !bookFrame) return;
+
+    bookModal.classList.remove('active');
+    bookFrame.src = '';
   };
 
   window.fecharPlayer = function () {

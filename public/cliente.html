@@ -68,6 +68,7 @@
 
   </div>
 
+  <!-- PLAYER FILMES -->
   <div id="playerModal" class="modal">
     <div class="modal-box">
       <div class="modal-header">
@@ -79,10 +80,31 @@
         <video id="videoPlayer" controls playsinline webkit-playsinline
           style="display:block; width:100%; border-radius:16px;"></video>
 
-        <iframe id="embedFrame" style="display:none; width:100%; height:70vh; border:none; border-radius:16px;"
-          allowfullscreen referrerpolicy="origin"></iframe>
+        <iframe id="embedFrame"
+          style="display:none; width:100%; height:70vh; border:none; border-radius:16px;"
+          allowfullscreen
+          referrerpolicy="origin"></iframe>
 
         <p class="player-note">Reprodução online com suporte HLS, MP4 e conteúdo incorporado.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEITOR DE LIVROS -->
+  <div id="bookModal" class="modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="bookTitle">Leitura</h3>
+        <button class="close-btn" onclick="fecharLivro()">Fechar</button>
+      </div>
+
+      <div class="modal-content">
+        <iframe
+          id="bookFrame"
+          style="display:block; width:100%; height:75vh; border:none; border-radius:16px; background:#fff;"
+          referrerpolicy="origin"></iframe>
+
+        <p class="player-note">Leitura online dentro da plataforma.</p>
       </div>
     </div>
   </div>
