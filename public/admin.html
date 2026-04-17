@@ -174,6 +174,14 @@
 
         <form id="bookForm">
           <div>
+            <label>Buscar livro no Google Books</label>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <input type="text" id="googleBooksBusca" placeholder="Ex: Pai Rico Pai Pobre">
+              <button type="button" class="btn btn-primary" onclick="buscarLivroGoogleBooks()">Buscar no Google Books</button>
+            </div>
+          </div>
+
+          <div>
             <label>Título do livro</label>
             <input type="text" id="livroTitulo" placeholder="Ex: Pai Rico Pai Pobre" required>
           </div>
@@ -458,6 +466,97 @@
       } catch (erro) {
         console.error("Erro ao buscar no TMDb:", erro);
         alert("Erro ao buscar informações no TMDb.");
+      }
+    }
+
+    function mapearCategoriaLivro(categorias = []) {
+      const texto = categorias.join(" ").toLowerCase();
+
+      if (texto.includes("business") || texto.includes("finance") || texto.includes("economics") || texto.includes("invest")) {
+        return "Finanças";
+      }
+
+      if (texto.includes("romance") || texto.includes("love")) {
+        return "Romance";
+      }
+
+      if (texto.includes("horror") || texto.includes("terror") || texto.includes("ghost") || texto.includes("thriller")) {
+        return "Terror";
+      }
+
+      if (texto.includes("fiction") || texto.includes("fantasy") || texto.includes("science fiction") || texto.includes("ficção")) {
+        return "Ficção";
+      }
+
+      if (texto.includes("study") || texto.includes("education") || texto.includes("educação") || texto.includes("academic") || texto.includes("school")) {
+        return "Estudo";
+      }
+
+      if (texto.includes("self-help") || texto.includes("motivation") || texto.includes("motivational") || texto.includes("personal development")) {
+        return "Motivacional";
+      }
+
+      if (texto.includes("comics") || texto.includes("comic") || texto.includes("graphic novel") || texto.includes("manga")) {
+        return "HQ";
+      }
+
+      return "Outro";
+    }
+
+    async function buscarLivroGoogleBooks() {
+      const termo = document.getElementById("googleBooksBusca")?.value?.trim();
+
+      if (!termo) {
+        alert("Digite o nome do livro.");
+        return;
+      }
+
+      try {
+        const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(termo)}&maxResults=1&langRestrict=pt`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data.items || !data.items.length) {
+          alert("Nenhum livro encontrado no Google Books.");
+          return;
+        }
+
+        const item = data.items[0];
+        const info = item.volumeInfo || {};
+
+        const titulo = info.title || "";
+        const autores = Array.isArray(info.authors) ? info.authors.join(", ") : "";
+        const descricao = info.description || "";
+        const categorias = Array.isArray(info.categories) ? info.categories : [];
+        const categoriaMapeada = mapearCategoriaLivro(categorias);
+
+        const capa =
+          info.imageLinks?.thumbnail?.replace("http://", "https://") ||
+          info.imageLinks?.smallThumbnail?.replace("http://", "https://") ||
+          "";
+
+        const linkLivro =
+          info.previewLink ||
+          info.infoLink ||
+          "";
+
+        if (titulo) document.getElementById("livroTitulo").value = titulo;
+        if (autores) document.getElementById("livroAutor").value = autores;
+        if (descricao) document.getElementById("livroDescricao").value = descricao;
+        if (capa) document.getElementById("livroCapa").value = capa;
+        if (linkLivro) document.getElementById("livroLink").value = linkLivro;
+
+        const selectCategoria = document.getElementById("livroCategoria");
+        if (selectCategoria && !selectCategoria.value) {
+          selectCategoria.value = categoriaMapeada;
+        } else if (selectCategoria && categoriaMapeada) {
+          selectCategoria.value = categoriaMapeada;
+        }
+
+        alert("Livro preenchido com sucesso pelo Google Books.");
+      } catch (erro) {
+        console.error("Erro ao buscar no Google Books:", erro);
+        alert("Erro ao buscar informações do livro.");
       }
     }
   </script>
