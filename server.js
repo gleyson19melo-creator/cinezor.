@@ -637,6 +637,10 @@ app.get('/cliente.html', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'cliente.html'));
 });
 
+app.get('/sala.html', requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'sala.html'));
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });

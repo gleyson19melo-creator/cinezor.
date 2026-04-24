@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cinezor - Assistir com Amigos</title>
+  <link rel="icon" type="image/png" href="/logo.png">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .sala-wrap{max-width:1400px;margin:0 auto;padding:24px}
+    .topo-sala{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+    .acoes-sala{display:flex;gap:10px;flex-wrap:wrap}
+    .player-box{background:#111;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    #videoSala{width:100%;max-height:70vh;background:#000;display:block}
+    .grid-sala{display:grid;grid-template-columns:320px 1fr;gap:18px;margin-top:18px}
+    .card-sala{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:16px}
+    .lista-online{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+    .user-online{padding:10px;border-radius:12px;background:rgba(255,255,255,.04)}
+    #chatMsgs{height:320px;overflow:auto;padding-right:6px}
+    .msg{padding:10px;border-radius:12px;background:rgba(255,255,255,.04);margin-bottom:8px}
+    .chat-send{display:flex;gap:10px;margin-top:12px}
+    .chat-send input{flex:1}
+    .mini{opacity:.8;font-size:.92rem}
+    @media(max-width:900px){.grid-sala{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="sala-wrap">
+    <div class="topo-sala">
+      <div>
+        <h1 id="tituloSala">🎬 Sala Cinezor</h1>
+        <p class="mini" id="subSala">Assistindo com amigos</p>
+      </div>
+
+      <div class="acoes-sala">
+        <button class="btn btn-primary" onclick="convidarSala()">👥 Convidar amigos</button>
+        <button class="btn btn-edit" onclick="copiarLinkSala()">🔗 Copiar link</button>
+        <a href="/cliente.html" class="btn btn-logout">⬅️ Voltar</a>
+      </div>
+    </div>
+
+    <div class="player-box">
+      <video id="videoSala" controls playsinline></video>
+    </div>
+
+    <div class="grid-sala">
+      <div class="card-sala">
+        <h2>🟢 Quem entrou</h2>
+        <div id="onlineList" class="lista-online"></div>
+      </div>
+
+      <div class="card-sala">
+        <h2>💬 Chat da sala</h2>
+        <div id="chatMsgs"></div>
+
+        <div class="chat-send">
+          <input type="text" id="msgInput" placeholder="Digite sua mensagem...">
+          <button class="btn btn-primary" onclick="enviarMsg()">Enviar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const roomId = new URLSearchParams(window.location.search).get('room') || 'SEMID';
+const nomeFilme = localStorage.getItem('cinezor_sala_nome') || 'Conteúdo';
+const videoUrl = localStorage.getItem('cinezor_sala_video') || '';
+const userId = localStorage.getItem('cinezor_user_id') || Math.random().toString(36).slice(2,8);
+localStorage.setItem('cinezor_user_id', userId);
+const nomeUser = localStorage.getItem('cinezor_user_nome') || ('Usuário-' + userId);
+localStorage.setItem('cinezor_user_nome', nomeUser);
+
+document.getElementById('tituloSala').textContent = '🎬 ' + nomeFilme;
+document.getElementById('subSala').textContent = 'Sala: ' + roomId;
+
+const video = document.getElementById('videoSala');
+if(videoUrl){ video.src = videoUrl; }
+
+function getOnlineKey(){ return 'sala_online_' + roomId; }
+function getChatKey(){ return 'sala_chat_' + roomId; }
+
+function entrarSala(){
+  const lista = JSON.parse(localStorage.getItem(getOnlineKey()) || '[]');
+  if(!lista.find(u => u.id === userId)){
+    lista.push({id:userId,nome:nomeUser});
+    localStorage.setItem(getOnlineKey(), JSON.stringify(lista));
+  }
+  renderOnline();
+}
+
+function sairSala(){
+  const lista = JSON.parse(localStorage.getItem(getOnlineKey()) || '[]').filter(u => u.id !== userId);
+  localStorage.setItem(getOnlineKey(), JSON.stringify(lista));
+}
+
+function renderOnline(){
+  const box = document.getElementById('onlineList');
+  const lista = JSON.parse(localStorage.getItem(getOnlineKey()) || '[]');
+  if(!lista.length){ box.innerHTML = '<div class="mini">Ninguém online.</div>'; return; }
+  box.innerHTML = lista.map(u => `<div class="user-online">🟢 ${u.nome}</div>`).join('');
+}
+
+function renderChat(){
+  const box = document.getElementById('chatMsgs');
+  const msgs = JSON.parse(localStorage.getItem(getChatKey()) || '[]');
+  if(!msgs.length){ box.innerHTML = '<div class="mini">Nenhuma mensagem ainda.</div>'; return; }
+  box.innerHTML = msgs.map(m => `<div class="msg"><strong>${m.nome}:</strong> ${m.texto}</div>`).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+window.enviarMsg = function(){
+  const input = document.getElementById('msgInput');
+  const texto = input.value.trim();
+  if(!texto) return;
+  const msgs = JSON.parse(localStorage.getItem(getChatKey()) || '[]');
+  msgs.push({nome:nomeUser,texto});
+  localStorage.setItem(getChatKey(), JSON.stringify(msgs));
+  input.value = '';
+  renderChat();
+}
+
+window.convidarSala = function(){
+  const msg = `Bora assistir comigo no Cinezor? ${location.href}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+window.copiarLinkSala = async function(){
+  try{
+    await navigator.clipboard.writeText(location.href);
+    alert('Link copiado!');
+  }catch(e){ alert('Não foi possível copiar.'); }
+}
+
+window.addEventListener('storage', () => {
+  renderOnline();
+  renderChat();
+});
+window.addEventListener('beforeunload', sairSala);
+
+entrarSala();
+renderChat();
+setInterval(renderOnline, 2000);
+</script>
+</body>
+</html>

@@ -1036,6 +1036,10 @@ if (window.location.pathname.includes('cliente.html')) {
           <button class="btn btn-watch" onclick="assistirVideoCliente('${nomeSeguro}', '${videoSegura}')">
             Assistir
           </button>
+
+          <button class="btn btn-edit" onclick="criarSalaAmigos('${nomeSeguro}', '${videoSegura}')">
+            👥 Assistir com amigos
+          </button>
         ` : ''}
         <a class="btn btn-edit" href="${linkOficial}" target="_blank" rel="noopener noreferrer">
           Oficial
@@ -1273,6 +1277,21 @@ if (window.location.pathname.includes('cliente.html')) {
     videoPlayer.pause();
     videoPlayer.removeAttribute('src');
     videoPlayer.load();
+  };
+
+  window.criarSalaAmigos = function (nome, url) {
+    if (!nome || !url) {
+      alert('Esse conteúdo não tem vídeo completo para criar sala.');
+      return;
+    }
+
+    const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    localStorage.setItem('cinezor_sala_room', roomId);
+    localStorage.setItem('cinezor_sala_nome', nome);
+    localStorage.setItem('cinezor_sala_video', url);
+
+    window.location.href = `/sala.html?room=${encodeURIComponent(roomId)}`;
   };
 
   carregarCanaisCliente();
