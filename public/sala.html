@@ -67,16 +67,19 @@
 
 <script>
 let hlsSala = null;
+let salaAtual = null;
+let sincronizando = false;
+let ultimoEnvioStatus = 0;
 
 const params = new URLSearchParams(window.location.search);
 const roomId = params.get('room') || 'SEMID';
 
-const nomeFilme =
+let nomeFilme =
   params.get('nome') ||
   localStorage.getItem('cinezor_sala_nome') ||
   'Conteúdo';
 
-const videoUrl =
+let videoUrl =
   params.get('video') ||
   localStorage.getItem('cinezor_sala_video') ||
   '';
@@ -89,16 +92,33 @@ if (params.get('video')) {
   localStorage.setItem('cinezor_sala_video', params.get('video'));
 }
 
-const userId = localStorage.getItem('cinezor_user_id') || Math.random().toString(36).slice(2,8);
-localStorage.setItem('cinezor_user_id', userId);
-const nomeUser = localStorage.getItem('cinezor_user_nome') || ('Usuário-' + userId);
-localStorage.setItem('cinezor_user_nome', nomeUser);
-
 document.getElementById('tituloSala').textContent = '🎬 ' + nomeFilme;
 document.getElementById('subSala').textContent = 'Sala: ' + roomId;
 
 const video = document.getElementById('videoSala');
 const iframeSala = document.getElementById('iframeSala');
+
+async function api(url, options = {}) {
+  const response = await fetch(url, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  });
+
+  if (response.status === 401) {
+    window.location.href = '/';
+    return null;
+  }
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    console.log('Erro API:', data);
+    return null;
+  }
+
+  return data;
+}
 
 function destruirHlsSala(){
   if(hlsSala){
@@ -160,50 +180,129 @@ function carregarVideoSala(url){
   video.load();
 }
 
-carregarVideoSala(videoUrl);
+async function carregarSalaServidor(){
+  const sala = await api(`/api/salas/${encodeURIComponent(roomId)}`);
 
-function getOnlineKey(){ return 'sala_online_' + roomId; }
-function getChatKey(){ return 'sala_chat_' + roomId; }
+  if (sala) {
+    salaAtual = sala;
 
-function entrarSala(){
-  const lista = JSON.parse(localStorage.getItem(getOnlineKey()) || '[]');
-  if(!lista.find(u => u.id === userId)){
-    lista.push({id:userId,nome:nomeUser});
-    localStorage.setItem(getOnlineKey(), JSON.stringify(lista));
+    nomeFilme = sala.nome || nomeFilme;
+    videoUrl = sala.videoUrl || videoUrl;
+
+    document.getElementById('tituloSala').textContent = '🎬 ' + nomeFilme;
+    document.getElementById('subSala').textContent = 'Sala: ' + roomId;
+
+    if (!video.src && !iframeSala.src) {
+      carregarVideoSala(videoUrl);
+    }
+  } else {
+    carregarVideoSala(videoUrl);
   }
-  renderOnline();
 }
 
-function sairSala(){
-  const lista = JSON.parse(localStorage.getItem(getOnlineKey()) || '[]').filter(u => u.id !== userId);
-  localStorage.setItem(getOnlineKey(), JSON.stringify(lista));
+async function entrarSalaServidor(){
+  await api(`/api/salas/${encodeURIComponent(roomId)}/entrar`, {
+    method: 'POST',
+    body: JSON.stringify({})
+  });
 }
 
-function renderOnline(){
+async function carregarOnlineServidor(){
+  const online = await api(`/api/salas/${encodeURIComponent(roomId)}/online`);
   const box = document.getElementById('onlineList');
-  const lista = JSON.parse(localStorage.getItem(getOnlineKey()) || '[]');
-  if(!lista.length){ box.innerHTML = '<div class="mini">Ninguém online.</div>'; return; }
-  box.innerHTML = lista.map(u => `<div class="user-online">🟢 ${u.nome}</div>`).join('');
+
+  if (!Array.isArray(online) || online.length === 0) {
+    box.innerHTML = '<div class="mini">Ninguém online.</div>';
+    return;
+  }
+
+  box.innerHTML = online.map(u => `<div class="user-online">🟢 ${u.nome || 'Convidado'}</div>`).join('');
 }
 
-function renderChat(){
+async function carregarChatServidor(){
+  const mensagens = await api(`/api/salas/${encodeURIComponent(roomId)}/chat`);
   const box = document.getElementById('chatMsgs');
-  const msgs = JSON.parse(localStorage.getItem(getChatKey()) || '[]');
-  if(!msgs.length){ box.innerHTML = '<div class="mini">Nenhuma mensagem ainda.</div>'; return; }
-  box.innerHTML = msgs.map(m => `<div class="msg"><strong>${m.nome}:</strong> ${m.texto}</div>`).join('');
+
+  if (!Array.isArray(mensagens) || mensagens.length === 0) {
+    box.innerHTML = '<div class="mini">Nenhuma mensagem ainda.</div>';
+    return;
+  }
+
+  box.innerHTML = mensagens.map(m => `<div class="msg"><strong>${m.nome || 'Convidado'}:</strong> ${m.texto}</div>`).join('');
   box.scrollTop = box.scrollHeight;
 }
 
-window.enviarMsg = function(){
+window.enviarMsg = async function(){
   const input = document.getElementById('msgInput');
   const texto = input.value.trim();
   if(!texto) return;
-  const msgs = JSON.parse(localStorage.getItem(getChatKey()) || '[]');
-  msgs.push({nome:nomeUser,texto});
-  localStorage.setItem(getChatKey(), JSON.stringify(msgs));
-  input.value = '';
-  renderChat();
+
+  const enviado = await api(`/api/salas/${encodeURIComponent(roomId)}/chat`, {
+    method: 'POST',
+    body: JSON.stringify({ texto })
+  });
+
+  if (enviado) {
+    input.value = '';
+    carregarChatServidor();
+  }
 }
+
+async function enviarStatusSala(){
+  if (iframeSala.style.display === 'block') return;
+  if (!video || !video.src) return;
+
+  const agora = Date.now();
+  if (agora - ultimoEnvioStatus < 900) return;
+  ultimoEnvioStatus = agora;
+
+  await api(`/api/salas/${encodeURIComponent(roomId)}/status`, {
+    method: 'POST',
+    body: JSON.stringify({
+      isPlaying: !video.paused,
+      currentTime: video.currentTime || 0
+    })
+  });
+}
+
+async function sincronizarStatusSala(){
+  if (iframeSala.style.display === 'block') return;
+  if (!video || !video.src) return;
+
+  const sala = await api(`/api/salas/${encodeURIComponent(roomId)}`);
+  if (!sala) return;
+
+  const tempoServidor = Number(sala.currentTime) || 0;
+  const diferenca = Math.abs((video.currentTime || 0) - tempoServidor);
+
+  sincronizando = true;
+
+  if (diferenca > 3) {
+    video.currentTime = tempoServidor;
+  }
+
+  if (sala.isPlaying && video.paused) {
+    video.play().catch(() => {});
+  }
+
+  if (!sala.isPlaying && !video.paused) {
+    video.pause();
+  }
+
+  setTimeout(() => { sincronizando = false; }, 300);
+}
+
+video.addEventListener('play', () => {
+  if (!sincronizando) enviarStatusSala();
+});
+
+video.addEventListener('pause', () => {
+  if (!sincronizando) enviarStatusSala();
+});
+
+video.addEventListener('seeked', () => {
+  if (!sincronizando) enviarStatusSala();
+});
 
 window.convidarSala = function(){
   const msg = `Bora assistir comigo no Cinezor? ${location.href}`;
@@ -217,15 +316,18 @@ window.copiarLinkSala = async function(){
   }catch(e){ alert('Não foi possível copiar.'); }
 }
 
-window.addEventListener('storage', () => {
-  renderOnline();
-  renderChat();
-});
-window.addEventListener('beforeunload', sairSala);
+async function iniciarSala(){
+  await carregarSalaServidor();
+  await entrarSalaServidor();
+  await carregarOnlineServidor();
+  await carregarChatServidor();
 
-entrarSala();
-renderChat();
-setInterval(renderOnline, 2000);
+  setInterval(carregarOnlineServidor, 3000);
+  setInterval(carregarChatServidor, 2500);
+  setInterval(sincronizarStatusSala, 2500);
+}
+
+iniciarSala();
 </script>
 </body>
 </html>

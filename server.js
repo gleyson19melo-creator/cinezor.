@@ -30,13 +30,11 @@ app.use(session({
   }
 }));
 
-// Serve arquivos estáticos, mas NÃO libera HTML automaticamente
 app.use(express.static(path.join(__dirname, 'public'), {
   index: false,
   extensions: false
 }));
 
-// Lê JSON e cria arquivo se não existir
 function readJson(filePath) {
   try {
     if (!fs.existsSync(filePath)) {
@@ -54,12 +52,10 @@ function readJson(filePath) {
   }
 }
 
-// Salva JSON
 function saveJson(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// Exige login
 function requireAuth(req, res, next) {
   if (!req.session.user) {
     return res.status(401).json({ error: 'Não autenticado.' });
@@ -67,7 +63,6 @@ function requireAuth(req, res, next) {
   next();
 }
 
-// Exige admin
 function requireAdmin(req, res, next) {
   if (!req.session.user) {
     return res.status(401).json({ error: 'Não autenticado.' });
@@ -79,10 +74,6 @@ function requireAdmin(req, res, next) {
 
   next();
 }
-
-/* =========================
-   FUNÇÕES DO PROXY HLS
-========================= */
 
 function fetchRemote(url, callback) {
   const client = url.startsWith('https://') ? https : http;
@@ -101,10 +92,6 @@ function buildAbsoluteUrl(baseUrl, relativePath) {
     return relativePath;
   }
 }
-
-/* =========================
-   PROXY HLS COMPLETO
-========================= */
 
 app.get('/proxy-hls', (req, res) => {
   const targetUrl = req.query.url;
@@ -181,7 +168,6 @@ app.get('/proxy-segment', (req, res) => {
     remoteRes.pipe(res);
   });
 });
-
 /* =========================
    LOGIN
 ========================= */
@@ -614,6 +600,149 @@ app.delete('/api/livros/:id', requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('Erro ao remover livro:', error);
     res.status(500).json({ error: 'Erro ao remover livro.' });
+  }
+});
+
+/* =========================
+   SALAS - ASSISTIR COM AMIGOS
+========================= */
+
+app.post('/api/salas/:roomId', requireAuth, async (req, res) => {
+  try {
+    const { nome, videoUrl } = req.body;
+    const roomId = req.params.roomId;
+
+    if (!nome || !videoUrl) {
+      return res.status(400).json({ error: 'Nome e vídeo são obrigatórios.' });
+    }
+
+    await db.collection('watchRooms').doc(roomId).set({
+      nome,
+      videoUrl,
+      isPlaying: false,
+      currentTime: 0,
+      criadoEm: new Date().toISOString(),
+      atualizadoEm: new Date().toISOString()
+    }, { merge: true });
+
+    res.json({ message: 'Sala criada com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao criar sala:', error);
+    res.status(500).json({ error: 'Erro ao criar sala.' });
+  }
+});
+
+app.get('/api/salas/:roomId', requireAuth, async (req, res) => {
+  try {
+    const doc = await db.collection('watchRooms').doc(req.params.roomId).get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'Sala não encontrada.' });
+    }
+
+    res.json({ id: doc.id, ...doc.data() });
+  } catch (error) {
+    console.error('Erro ao buscar sala:', error);
+    res.status(500).json({ error: 'Erro ao buscar sala.' });
+  }
+});
+
+app.post('/api/salas/:roomId/status', requireAuth, async (req, res) => {
+  try {
+    await db.collection('watchRooms').doc(req.params.roomId).set({
+      isPlaying: !!req.body.isPlaying,
+      currentTime: Number(req.body.currentTime) || 0,
+      atualizadoEm: new Date().toISOString()
+    }, { merge: true });
+
+    res.json({ message: 'Status atualizado.' });
+  } catch (error) {
+    console.error('Erro ao atualizar status:', error);
+    res.status(500).json({ error: 'Erro ao atualizar status.' });
+  }
+});
+
+app.post('/api/salas/:roomId/entrar', requireAuth, async (req, res) => {
+  try {
+    await db.collection('watchRooms')
+      .doc(req.params.roomId)
+      .collection('online')
+      .doc(String(req.session.user.id))
+      .set({
+        nome: req.session.user.usuario || 'Convidado',
+        userId: req.session.user.id,
+        entrouEm: new Date().toISOString(),
+        ultimoPing: new Date().toISOString()
+      }, { merge: true });
+
+    res.json({ message: 'Entrou na sala.' });
+  } catch (error) {
+    console.error('Erro ao entrar na sala:', error);
+    res.status(500).json({ error: 'Erro ao entrar na sala.' });
+  }
+});
+
+app.get('/api/salas/:roomId/online', requireAuth, async (req, res) => {
+  try {
+    const snapshot = await db.collection('watchRooms')
+      .doc(req.params.roomId)
+      .collection('online')
+      .get();
+
+    const online = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    res.json(online);
+  } catch (error) {
+    console.error('Erro ao listar online:', error);
+    res.status(500).json({ error: 'Erro ao listar online.' });
+  }
+});
+
+app.post('/api/salas/:roomId/chat', requireAuth, async (req, res) => {
+  try {
+    const { texto } = req.body;
+
+    if (!texto || !texto.trim()) {
+      return res.status(400).json({ error: 'Mensagem vazia.' });
+    }
+
+    await db.collection('watchRooms')
+      .doc(req.params.roomId)
+      .collection('chat')
+      .add({
+        nome: req.session.user.usuario || 'Convidado',
+        texto: texto.trim(),
+        criadoEm: new Date().toISOString()
+      });
+
+    res.json({ message: 'Mensagem enviada.' });
+  } catch (error) {
+    console.error('Erro ao enviar mensagem:', error);
+    res.status(500).json({ error: 'Erro ao enviar mensagem.' });
+  }
+});
+
+app.get('/api/salas/:roomId/chat', requireAuth, async (req, res) => {
+  try {
+    const snapshot = await db.collection('watchRooms')
+      .doc(req.params.roomId)
+      .collection('chat')
+      .orderBy('criadoEm', 'asc')
+      .limit(80)
+      .get();
+
+    const mensagens = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    res.json(mensagens);
+  } catch (error) {
+    console.error('Erro ao buscar chat:', error);
+    res.status(500).json({ error: 'Erro ao buscar chat.' });
   }
 });
 

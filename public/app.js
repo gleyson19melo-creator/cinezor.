@@ -1279,7 +1279,7 @@ if (window.location.pathname.includes('cliente.html')) {
     videoPlayer.load();
   };
 
-  window.criarSalaAmigos = function (nome, url) {
+  window.criarSalaAmigos = async function (nome, url) {
     if (!nome || !url) {
       alert('Esse conteúdo não tem vídeo completo para criar sala.');
       return;
@@ -1291,8 +1291,29 @@ if (window.location.pathname.includes('cliente.html')) {
     localStorage.setItem('cinezor_sala_nome', nome);
     localStorage.setItem('cinezor_sala_video', url);
 
-    window.location.href =
-      `/sala.html?room=${encodeURIComponent(roomId)}&nome=${encodeURIComponent(nome)}&video=${encodeURIComponent(url)}`;
+    try {
+      const response = await fetch(`/api/salas/${encodeURIComponent(roomId)}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome,
+          videoUrl: url
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || 'Erro ao criar sala.');
+        return;
+      }
+
+      window.location.href =
+        `/sala.html?room=${encodeURIComponent(roomId)}&nome=${encodeURIComponent(nome)}&video=${encodeURIComponent(url)}`;
+    } catch (error) {
+      alert('Erro ao conectar com o servidor para criar a sala.');
+    }
   };
 
   carregarCanaisCliente();
