@@ -10,8 +10,9 @@
     .sala-wrap{max-width:1400px;margin:0 auto;padding:24px}
     .topo-sala{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
     .acoes-sala{display:flex;gap:10px;flex-wrap:wrap}
-    .player-box{background:#111;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-    #videoSala{width:100%;max-height:70vh;background:#000;display:block}
+    .player-box{background:#111;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:10px}
+    #videoSala{width:100%;max-height:70vh;background:#000;display:block;border-radius:16px}
+    #iframeSala{display:none;width:100%;height:70vh;border:none;border-radius:16px;background:#000}
     .grid-sala{display:grid;grid-template-columns:320px 1fr;gap:18px;margin-top:18px}
     .card-sala{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:16px}
     .lista-online{display:flex;flex-direction:column;gap:8px;margin-top:10px}
@@ -21,7 +22,7 @@
     .chat-send{display:flex;gap:10px;margin-top:12px}
     .chat-send input{flex:1}
     .mini{opacity:.8;font-size:.92rem}
-    @media(max-width:900px){.grid-sala{grid-template-columns:1fr}}
+    @media(max-width:900px){.grid-sala{grid-template-columns:1fr}.sala-wrap{padding:12px}#iframeSala{height:60vh}}
   </style>
 </head>
 <body>
@@ -40,7 +41,8 @@
     </div>
 
     <div class="player-box">
-      <video id="videoSala" controls playsinline></video>
+      <video id="videoSala" controls playsinline webkit-playsinline></video>
+      <iframe id="iframeSala" allowfullscreen referrerpolicy="origin"></iframe>
     </div>
 
     <div class="grid-sala">
@@ -61,7 +63,11 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
 <script>
+let hlsSala = null;
+
 const roomId = new URLSearchParams(window.location.search).get('room') || 'SEMID';
 const nomeFilme = localStorage.getItem('cinezor_sala_nome') || 'Conteúdo';
 const videoUrl = localStorage.getItem('cinezor_sala_video') || '';
@@ -74,7 +80,69 @@ document.getElementById('tituloSala').textContent = '🎬 ' + nomeFilme;
 document.getElementById('subSala').textContent = 'Sala: ' + roomId;
 
 const video = document.getElementById('videoSala');
-if(videoUrl){ video.src = videoUrl; }
+const iframeSala = document.getElementById('iframeSala');
+
+function destruirHlsSala(){
+  if(hlsSala){
+    hlsSala.destroy();
+    hlsSala = null;
+  }
+}
+
+function carregarVideoSala(url){
+  if(!url){
+    alert('Vídeo não encontrado para essa sala. Volte e abra pelo botão Assistir com amigos.');
+    return;
+  }
+
+  destruirHlsSala();
+  video.pause();
+  video.removeAttribute('src');
+  video.load();
+  iframeSala.src = '';
+
+  if(
+    url.includes('/embed/') ||
+    url.includes('embedplayapi.site') ||
+    url.includes('youtube.com/embed/') ||
+    url.includes('player.vimeo.com/')
+  ){
+    video.style.display = 'none';
+    iframeSala.style.display = 'block';
+    iframeSala.src = url;
+    return;
+  }
+
+  let finalUrl = url;
+
+  if(url.includes('.m3u8')){
+    finalUrl = `/proxy-hls?url=${encodeURIComponent(url)}`;
+  } else if(url.startsWith('http://')){
+    finalUrl = `/proxy-segment?url=${encodeURIComponent(url)}`;
+  }
+
+  iframeSala.style.display = 'none';
+  video.style.display = 'block';
+
+  if(url.includes('.m3u8')){
+    if(video.canPlayType('application/vnd.apple.mpegurl')){
+      video.src = finalUrl;
+      video.load();
+    } else if(window.Hls && Hls.isSupported()){
+      hlsSala = new Hls();
+      hlsSala.loadSource(finalUrl);
+      hlsSala.attachMedia(video);
+    } else {
+      alert('Seu navegador não suporta esse tipo de vídeo.');
+    }
+    return;
+  }
+
+  video.src = finalUrl;
+  video.load();
+}
+
+carregarVideoSala(videoUrl);
 
 function getOnlineKey(){ return 'sala_online_' + roomId; }
 function getChatKey(){ return 'sala_chat_' + roomId; }
