@@ -68,9 +68,27 @@
 <script>
 let hlsSala = null;
 
-const roomId = new URLSearchParams(window.location.search).get('room') || 'SEMID';
-const nomeFilme = localStorage.getItem('cinezor_sala_nome') || 'Conteúdo';
-const videoUrl = localStorage.getItem('cinezor_sala_video') || '';
+const params = new URLSearchParams(window.location.search);
+const roomId = params.get('room') || 'SEMID';
+
+const nomeFilme =
+  params.get('nome') ||
+  localStorage.getItem('cinezor_sala_nome') ||
+  'Conteúdo';
+
+const videoUrl =
+  params.get('video') ||
+  localStorage.getItem('cinezor_sala_video') ||
+  '';
+
+if (params.get('nome')) {
+  localStorage.setItem('cinezor_sala_nome', params.get('nome'));
+}
+
+if (params.get('video')) {
+  localStorage.setItem('cinezor_sala_video', params.get('video'));
+}
+
 const userId = localStorage.getItem('cinezor_user_id') || Math.random().toString(36).slice(2,8);
 localStorage.setItem('cinezor_user_id', userId);
 const nomeUser = localStorage.getItem('cinezor_user_nome') || ('Usuário-' + userId);

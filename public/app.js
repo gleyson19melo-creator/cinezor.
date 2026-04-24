@@ -1291,7 +1291,8 @@ if (window.location.pathname.includes('cliente.html')) {
     localStorage.setItem('cinezor_sala_nome', nome);
     localStorage.setItem('cinezor_sala_video', url);
 
-    window.location.href = `/sala.html?room=${encodeURIComponent(roomId)}`;
+    window.location.href =
+      `/sala.html?room=${encodeURIComponent(roomId)}&nome=${encodeURIComponent(nome)}&video=${encodeURIComponent(url)}`;
   };
 
   carregarCanaisCliente();
