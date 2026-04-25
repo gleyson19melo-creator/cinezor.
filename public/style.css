@@ -989,3 +989,313 @@ video {
     height: 260px;
   }
 }
+/* =========================================================
+   CINEZOR V2 ULTRA PREMIUM
+   Cole ESTE BLOCO NO FINAL do seu style.css
+   Mantém sua estrutura atual
+========================================================= */
+
+:root {
+  --bg: #050505;
+  --bg-2: #0a0a0a;
+  --card: #111111;
+  --text: #f9fafb;
+  --muted: #a1a1aa;
+  --primary: #e50914;
+  --primary-dark: #b20710;
+  --success: #22c55e;
+  --success-bg: rgba(34,197,94,.12);
+  --danger: #ef4444;
+  --danger-bg: rgba(239,68,68,.12);
+  --border: rgba(255,255,255,.10);
+  --shadow: 0 22px 60px rgba(0,0,0,.45);
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,.86) 45%, #000 100%),
+    radial-gradient(circle at 20% 0%, rgba(229,9,20,.25), transparent 35%),
+    url('/fundo.jpg') no-repeat center center fixed;
+  background-size:cover;
+  color:#fff;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at top left, rgba(229,9,20,.18), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(255,255,255,.05), transparent 28%);
+  z-index:0;
+}
+
+.container,
+.login-wrapper,
+.modal,
+.about-section,
+.reviews-section,
+.site-footer,
+.sala-wrap{
+  position:relative;
+  z-index:1;
+}
+
+/* LOGIN */
+.login-card{
+  background:rgba(8,8,8,.78);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:
+    0 30px 90px rgba(0,0,0,.60),
+    inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.site-logo{
+  border-radius:32px;
+  box-shadow:
+    0 22px 45px rgba(0,0,0,.48),
+    0 0 40px rgba(229,9,20,.18);
+}
+
+.login-card h1,
+.hero h1,
+.hero-left h1{
+  letter-spacing:-1px;
+  text-shadow:0 12px 35px rgba(0,0,0,.55);
+}
+
+.hero h1,
+.hero-left h1{
+  font-size:clamp(34px,5vw,56px);
+  font-weight:950;
+}
+
+.hero-badge{
+  background:linear-gradient(135deg,#ff1b25,#8b0008);
+  color:#fff;
+  box-shadow:0 14px 35px rgba(229,9,20,.28);
+}
+
+/* PAINÉIS */
+.panel-card,
+.channels-card,
+.about-section,
+.reviews-section,
+.site-footer,
+.topo-sala,
+.card-sala{
+  background:rgba(8,8,8,.78);
+  border:1px solid rgba(255,255,255,.10);
+  color:#fff;
+  box-shadow:0 28px 70px rgba(0,0,0,.42);
+  backdrop-filter:blur(14px);
+}
+
+/* INPUTS */
+input,
+textarea,
+select{
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.12);
+}
+
+input::placeholder,
+textarea::placeholder{
+  color:rgba(255,255,255,.48);
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+  border-color:#e50914;
+  box-shadow:0 0 0 4px rgba(229,9,20,.16);
+}
+
+select option{
+  background:#111;
+  color:#fff;
+}
+
+/* BOTÕES */
+.btn-primary{
+  background:linear-gradient(135deg,#ff1b25 0%,#e50914 45%,#8b0008 100%);
+  box-shadow:0 16px 35px rgba(229,9,20,.32);
+}
+
+.btn-watch{
+  background:linear-gradient(135deg,#22c55e,#15803d);
+}
+
+.btn-edit{
+  background:rgba(255,255,255,.10);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.btn-danger{
+  background:linear-gradient(135deg,#ef4444,#991b1b);
+}
+
+.btn:hover{
+  filter:brightness(1.08);
+  transform:translateY(-2px);
+}
+
+/* FILTROS */
+.btn-filter{
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.10);
+}
+
+.btn-filter.active{
+  background:linear-gradient(135deg,#ff1b25,#8b0008);
+}
+
+/* CARDS STREAMING */
+.channel-grid{
+  gap:22px;
+}
+
+.channel-card{
+  position:relative;
+  background:#111;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:22px;
+  overflow:hidden;
+  box-shadow:0 18px 42px rgba(0,0,0,.32);
+  transition:.28s ease;
+}
+
+.channel-card:hover{
+  transform:translateY(-10px) scale(1.02);
+  border-color:rgba(229,9,20,.45);
+  box-shadow:
+    0 35px 75px rgba(0,0,0,.55),
+    0 0 45px rgba(229,9,20,.16);
+}
+
+.channel-thumb{
+  height:210px;
+  transition:.45s ease;
+}
+
+.channel-card:hover .channel-thumb{
+  transform:scale(1.08);
+  filter:brightness(.82) contrast(1.08);
+}
+
+.channel-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.92) 100%);
+  z-index:1;
+}
+
+.channel-card::after{
+  content:"▶ Assistir";
+  position:absolute;
+  left:14px;
+  right:14px;
+  top:150px;
+  text-align:center;
+  background:rgba(229,9,20,.94);
+  color:#fff;
+  padding:11px;
+  border-radius:14px;
+  font-weight:900;
+  opacity:0;
+  transform:translateY(14px);
+  transition:.28s;
+  z-index:3;
+}
+
+.channel-card:hover::after{
+  opacity:1;
+  transform:translateY(0);
+}
+
+.channel-body{
+  position:relative;
+  z-index:2;
+  background:linear-gradient(180deg,#121212,#0a0a0a);
+}
+
+.channel-name{
+  color:#fff;
+}
+
+.channel-info{
+  color:rgba(255,255,255,.66);
+}
+
+.status{
+  background:rgba(34,197,94,.13);
+  color:#4ade80;
+}
+
+/* MODAL */
+.modal{
+  background:rgba(0,0,0,.88);
+}
+
+.modal-box{
+  background:#050505;
+  border:1px solid rgba(255,255,255,.12);
+}
+
+/* WHATSAPP */
+.whatsapp-float{
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.42),
+    0 0 30px rgba(37,211,102,.24);
+}
+
+/* SCROLL */
+::-webkit-scrollbar{
+  width:9px;
+}
+
+::-webkit-scrollbar-track{
+  background:#050505;
+}
+
+::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,#e50914,#7f0007);
+  border-radius:999px;
+}
+
+/* MOBILE */
+@media (max-width:640px){
+
+  body{
+    padding:18px 12px 28px;
+    background-attachment:scroll;
+  }
+
+  .channel-grid{
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:14px;
+  }
+
+  .channel-thumb{
+    height:220px;
+  }
+
+  .channel-card::after{
+    top:160px;
+    font-size:13px;
+  }
+
+  .channel-actions .btn{
+    width:100%;
+    text-align:center;
+  }
+}
