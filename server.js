@@ -13,14 +13,10 @@ const PORT = process.env.PORT || 3000;
 const CHANNELS_FILE = path.join(__dirname, 'canais.json');
 const USERS_FILE = path.join(__dirname, 'usuarios.json');
 
-
 // Cache simples para reduzir leituras no Firebase
 // Diminui erro de cota quando muita gente abre o site.
 const CACHE_TTL = 1000 * 60; // 1 minuto
-const cache = {
-  canais: { data: null, time: 0 },
-  livros: { data: null, time: 0 }
-};
+const cache = {};
 
 function getCache(key) {
   const item = cache[key];
@@ -33,10 +29,12 @@ function setCache(key, data) {
   cache[key] = { data, time: Date.now() };
 }
 
-function clearCache(key) {
-  if (cache[key]) {
-    cache[key] = { data: null, time: 0 };
-  }
+function clearCache(prefix) {
+  Object.keys(cache).forEach((key) => {
+    if (key.startsWith(prefix)) {
+      delete cache[key];
+    }
+  });
 }
 
 app.set('trust proxy', 1);
@@ -194,6 +192,7 @@ app.get('/proxy-segment', (req, res) => {
     remoteRes.pipe(res);
   });
 });
+
 /* =========================
    LOGIN
 ========================= */
@@ -374,20 +373,32 @@ app.delete('/api/usuarios/:id', requireAdmin, (req, res) => {
 });
 
 /* =========================
-   CONTEÚDOS - FIRESTORE
+   CONTEÚDOS - FIRESTORE COM PAGINAÇÃO
 ========================= */
 
 app.get('/api/canais', requireAuth, async (req, res) => {
   try {
-    const cached = getCache('canais');
+    const limite = Math.min(Number(req.query.limit) || 20, 50);
+    const cursor = req.query.cursor || '';
+    const cacheKey = `canais_${limite}_${cursor}`;
+
+    const cached = getCache(cacheKey);
     if (cached) {
       return res.json(cached);
     }
 
-    const snapshot = await db.collection('canais')
+    let query = db.collection('canais')
       .orderBy('criadoEm', 'desc')
-      .limit(20)
-      .get();
+      .limit(limite);
+
+    if (cursor) {
+      query = db.collection('canais')
+        .orderBy('criadoEm', 'desc')
+        .startAfter(cursor)
+        .limit(limite);
+    }
+
+    const snapshot = await query.get();
 
     const canais = snapshot.docs.map((doc) => {
       const data = doc.data();
@@ -396,12 +407,20 @@ app.get('/api/canais', requireAuth, async (req, res) => {
         id: doc.id,
         ...data,
         trailerUrl: data.trailerUrl || data.url || '',
-        videoUrl: data.videoUrl || ''
+        videoUrl: data.videoUrl || '',
+        criadoEm: data.criadoEm || ''
       };
     });
 
-    setCache('canais', canais);
-    res.json(canais);
+    const ultimo = canais.length ? canais[canais.length - 1].criadoEm : null;
+    const resposta = {
+      items: canais,
+      nextCursor: canais.length === limite ? ultimo : null,
+      hasMore: canais.length === limite
+    };
+
+    setCache(cacheKey, resposta);
+    res.json(resposta);
   } catch (error) {
     console.error('Erro ao listar conteúdos:', error);
     res.status(500).json({ error: 'Erro ao listar conteúdos.' });
@@ -519,20 +538,32 @@ app.delete('/api/canais/:id', requireAdmin, async (req, res) => {
 });
 
 /* =========================
-   LIVROS - FIRESTORE
+   LIVROS - FIRESTORE COM PAGINAÇÃO
 ========================= */
 
 app.get('/api/livros', requireAuth, async (req, res) => {
   try {
-    const cached = getCache('livros');
+    const limite = Math.min(Number(req.query.limit) || 20, 50);
+    const cursor = req.query.cursor || '';
+    const cacheKey = `livros_${limite}_${cursor}`;
+
+    const cached = getCache(cacheKey);
     if (cached) {
       return res.json(cached);
     }
 
-    const snapshot = await db.collection('livros')
+    let query = db.collection('livros')
       .orderBy('criadoEm', 'desc')
-      .limit(20)
-      .get();
+      .limit(limite);
+
+    if (cursor) {
+      query = db.collection('livros')
+        .orderBy('criadoEm', 'desc')
+        .startAfter(cursor)
+        .limit(limite);
+    }
+
+    const snapshot = await query.get();
 
     const livros = snapshot.docs.map((doc) => {
       const data = doc.data();
@@ -551,8 +582,15 @@ app.get('/api/livros', requireAuth, async (req, res) => {
       };
     });
 
-    setCache('livros', livros);
-    res.json(livros);
+    const ultimo = livros.length ? livros[livros.length - 1].criadoEm : null;
+    const resposta = {
+      items: livros,
+      nextCursor: livros.length === limite ? ultimo : null,
+      hasMore: livros.length === limite
+    };
+
+    setCache(cacheKey, resposta);
+    res.json(resposta);
   } catch (error) {
     console.error('Erro ao listar livros:', error);
     res.status(500).json({ error: 'Erro ao listar livros.' });

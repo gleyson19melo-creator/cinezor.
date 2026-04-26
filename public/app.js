@@ -1,6 +1,58 @@
 // Controla a instância do player HLS
 let hlsPlayer = null;
 
+// Ajusta resposta antiga (array) e resposta nova com paginação ({ items, nextCursor, hasMore })
+function normalizarRespostaPaginada(data) {
+  if (Array.isArray(data)) {
+    return {
+      items: data,
+      nextCursor: null,
+      hasMore: false
+    };
+  }
+
+  return {
+    items: Array.isArray(data?.items) ? data.items : [],
+    nextCursor: data?.nextCursor || null,
+    hasMore: !!data?.hasMore
+  };
+}
+
+function montarUrlPaginada(baseUrl, cursor, limit = 20) {
+  const params = new URLSearchParams();
+  params.set('limit', String(limit));
+
+  if (cursor) {
+    params.set('cursor', cursor);
+  }
+
+  return `${baseUrl}?${params.toString()}`;
+}
+
+function renderizarBotaoCarregarMais(listaEl, id, texto, mostrar, onClick) {
+  if (!listaEl) return;
+
+  let botao = document.getElementById(id);
+
+  if (!mostrar) {
+    if (botao) botao.remove();
+    return;
+  }
+
+  if (!botao) {
+    botao = document.createElement('button');
+    botao.id = id;
+    botao.className = 'btn btn-primary';
+    botao.style.display = 'block';
+    botao.style.margin = '18px auto 0';
+    listaEl.insertAdjacentElement('afterend', botao);
+  }
+
+  botao.textContent = texto;
+  botao.onclick = onClick;
+}
+
+
 // Faz login no sistema
 async function login(event) {
   event.preventDefault();
@@ -295,6 +347,10 @@ if (window.location.pathname.includes('admin.html')) {
 
   let canaisGlobais = [];
   let livrosGlobais = [];
+  let canaisCursor = null;
+  let canaisTemMais = false;
+  let livrosCursor = null;
+  let livrosTemMais = false;
 
   function showMessage(text, type) {
     if (!mensagem) return;
@@ -470,9 +526,11 @@ if (window.location.pathname.includes('admin.html')) {
     });
   }
 
-  async function carregarCanais() {
+  async function carregarCanais(carregarMais = false) {
     try {
-      const response = await fetch('/api/canais', {
+      const url = montarUrlPaginada('/api/canais', carregarMais ? canaisCursor : null, 20);
+
+      const response = await fetch(url, {
         credentials: 'include'
       });
 
@@ -481,15 +539,30 @@ if (window.location.pathname.includes('admin.html')) {
         return;
       }
 
-      const canais = await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
         showMessage('Não foi possível carregar os canais.', 'error');
         return;
       }
 
-      canaisGlobais = Array.isArray(canais) ? canais : [];
+      const pagina = normalizarRespostaPaginada(data);
+
+      canaisGlobais = carregarMais
+        ? [...canaisGlobais, ...pagina.items]
+        : pagina.items;
+
+      canaisCursor = pagina.nextCursor;
+      canaisTemMais = pagina.hasMore;
+
       renderizarCanais(canaisGlobais);
+      renderizarBotaoCarregarMais(
+        listaCanais,
+        'btnCarregarMaisCanaisAdmin',
+        'Carregar mais conteúdos',
+        canaisTemMais,
+        () => carregarCanais(true)
+      );
     } catch (error) {
       showMessage('Erro ao carregar canais.', 'error');
     }
@@ -519,9 +592,11 @@ if (window.location.pathname.includes('admin.html')) {
     }
   }
 
-  async function carregarLivros() {
+  async function carregarLivros(carregarMais = false) {
     try {
-      const response = await fetch('/api/livros', {
+      const url = montarUrlPaginada('/api/livros', carregarMais ? livrosCursor : null, 20);
+
+      const response = await fetch(url, {
         credentials: 'include'
       });
 
@@ -530,15 +605,30 @@ if (window.location.pathname.includes('admin.html')) {
         return;
       }
 
-      const livros = await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
         showBookMessage('Não foi possível carregar os livros.', 'error');
         return;
       }
 
-      livrosGlobais = Array.isArray(livros) ? livros : [];
+      const pagina = normalizarRespostaPaginada(data);
+
+      livrosGlobais = carregarMais
+        ? [...livrosGlobais, ...pagina.items]
+        : pagina.items;
+
+      livrosCursor = pagina.nextCursor;
+      livrosTemMais = pagina.hasMore;
+
       renderizarLivros(livrosGlobais);
+      renderizarBotaoCarregarMais(
+        listaLivros,
+        'btnCarregarMaisLivrosAdmin',
+        'Carregar mais livros',
+        livrosTemMais,
+        () => carregarLivros(true)
+      );
     } catch (error) {
       showBookMessage('Erro ao carregar livros.', 'error');
     }
@@ -976,6 +1066,10 @@ if (window.location.pathname.includes('cliente.html')) {
   let canaisCliente = [];
   let livrosCliente = [];
   let categoriaAtual = 'Todos';
+  let canaisClienteCursor = null;
+  let livrosClienteCursor = null;
+  let canaisClienteTemMais = false;
+  let livrosClienteTemMais = false;
 
   function atualizarTotalCliente(lista) {
     if (!totalCanaisCliente) return;
@@ -1169,9 +1263,21 @@ if (window.location.pathname.includes('cliente.html')) {
     aplicarFiltros();
   };
 
-  async function carregarCanaisCliente() {
+  function atualizarBotaoCarregarMaisCliente() {
+    renderizarBotaoCarregarMais(
+      listaCanais,
+      'btnCarregarMaisCliente',
+      'Carregar mais',
+      canaisClienteTemMais || livrosClienteTemMais,
+      carregarMaisCatalogoCliente
+    );
+  }
+
+  async function carregarCanaisCliente(carregarMais = false) {
     try {
-      const response = await fetch('/api/canais', {
+      const url = montarUrlPaginada('/api/canais', carregarMais ? canaisClienteCursor : null, 20);
+
+      const response = await fetch(url, {
         credentials: 'include'
       });
 
@@ -1180,7 +1286,7 @@ if (window.location.pathname.includes('cliente.html')) {
         return;
       }
 
-      const canais = await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
         if (listaCanais) {
@@ -1189,8 +1295,17 @@ if (window.location.pathname.includes('cliente.html')) {
         return;
       }
 
-      canaisCliente = Array.isArray(canais) ? canais : [];
+      const pagina = normalizarRespostaPaginada(data);
+
+      canaisCliente = carregarMais
+        ? [...canaisCliente, ...pagina.items]
+        : pagina.items;
+
+      canaisClienteCursor = pagina.nextCursor;
+      canaisClienteTemMais = pagina.hasMore;
+
       aplicarFiltros();
+      atualizarBotaoCarregarMaisCliente();
     } catch (error) {
       if (listaCanais) {
         listaCanais.innerHTML = '<div class="empty">Erro ao carregar conteúdos.</div>';
@@ -1198,9 +1313,11 @@ if (window.location.pathname.includes('cliente.html')) {
     }
   }
 
-  async function carregarLivrosCliente() {
+  async function carregarLivrosCliente(carregarMais = false) {
     try {
-      const response = await fetch('/api/livros', {
+      const url = montarUrlPaginada('/api/livros', carregarMais ? livrosClienteCursor : null, 20);
+
+      const response = await fetch(url, {
         credentials: 'include'
       });
 
@@ -1209,15 +1326,45 @@ if (window.location.pathname.includes('cliente.html')) {
         return;
       }
 
-      const livros = await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
         return;
       }
 
-      livrosCliente = Array.isArray(livros) ? livros : [];
+      const pagina = normalizarRespostaPaginada(data);
+
+      livrosCliente = carregarMais
+        ? [...livrosCliente, ...pagina.items]
+        : pagina.items;
+
+      livrosClienteCursor = pagina.nextCursor;
+      livrosClienteTemMais = pagina.hasMore;
+
       aplicarFiltros();
+      atualizarBotaoCarregarMaisCliente();
     } catch (error) { }
+  }
+
+  async function carregarMaisCatalogoCliente() {
+    const botao = document.getElementById('btnCarregarMaisCliente');
+
+    if (botao) {
+      botao.disabled = true;
+      botao.textContent = 'Carregando...';
+    }
+
+    await Promise.all([
+      canaisClienteTemMais ? carregarCanaisCliente(true) : Promise.resolve(),
+      livrosClienteTemMais ? carregarLivrosCliente(true) : Promise.resolve()
+    ]);
+
+    if (botao) {
+      botao.disabled = false;
+      botao.textContent = 'Carregar mais';
+    }
+
+    atualizarBotaoCarregarMaisCliente();
   }
 
   if (buscaCliente) {
