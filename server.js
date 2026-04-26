@@ -13,6 +13,32 @@ const PORT = process.env.PORT || 3000;
 const CHANNELS_FILE = path.join(__dirname, 'canais.json');
 const USERS_FILE = path.join(__dirname, 'usuarios.json');
 
+
+// Cache simples para reduzir leituras no Firebase
+// Diminui erro de cota quando muita gente abre o site.
+const CACHE_TTL = 1000 * 60; // 1 minuto
+const cache = {
+  canais: { data: null, time: 0 },
+  livros: { data: null, time: 0 }
+};
+
+function getCache(key) {
+  const item = cache[key];
+  if (!item || !item.data) return null;
+  if (Date.now() - item.time > CACHE_TTL) return null;
+  return item.data;
+}
+
+function setCache(key, data) {
+  cache[key] = { data, time: Date.now() };
+}
+
+function clearCache(key) {
+  if (cache[key]) {
+    cache[key] = { data: null, time: 0 };
+  }
+}
+
 app.set('trust proxy', 1);
 
 app.use(express.json());
@@ -353,7 +379,15 @@ app.delete('/api/usuarios/:id', requireAdmin, (req, res) => {
 
 app.get('/api/canais', requireAuth, async (req, res) => {
   try {
-    const snapshot = await db.collection('canais').get();
+    const cached = getCache('canais');
+    if (cached) {
+      return res.json(cached);
+    }
+
+    const snapshot = await db.collection('canais')
+      .orderBy('criadoEm', 'desc')
+      .limit(20)
+      .get();
 
     const canais = snapshot.docs.map((doc) => {
       const data = doc.data();
@@ -366,6 +400,7 @@ app.get('/api/canais', requireAuth, async (req, res) => {
       };
     });
 
+    setCache('canais', canais);
     res.json(canais);
   } catch (error) {
     console.error('Erro ao listar conteúdos:', error);
@@ -409,6 +444,7 @@ app.post('/api/canais', requireAdmin, async (req, res) => {
     };
 
     const docRef = await db.collection('canais').add(novoCanal);
+    clearCache('canais');
 
     res.status(201).json({
       message: 'Conteúdo adicionado com sucesso.',
@@ -460,6 +496,7 @@ app.put('/api/canais/:id', requireAdmin, async (req, res) => {
     }
 
     await docRef.set(atualizado);
+    clearCache('canais');
 
     res.json({ message: 'Conteúdo atualizado com sucesso.' });
   } catch (error) {
@@ -472,6 +509,7 @@ app.delete('/api/canais/:id', requireAdmin, async (req, res) => {
   try {
     const id = req.params.id;
     await db.collection('canais').doc(id).delete();
+    clearCache('canais');
 
     res.json({ message: 'Conteúdo removido com sucesso.' });
   } catch (error) {
@@ -486,7 +524,15 @@ app.delete('/api/canais/:id', requireAdmin, async (req, res) => {
 
 app.get('/api/livros', requireAuth, async (req, res) => {
   try {
-    const snapshot = await db.collection('livros').get();
+    const cached = getCache('livros');
+    if (cached) {
+      return res.json(cached);
+    }
+
+    const snapshot = await db.collection('livros')
+      .orderBy('criadoEm', 'desc')
+      .limit(20)
+      .get();
 
     const livros = snapshot.docs.map((doc) => {
       const data = doc.data();
@@ -505,6 +551,7 @@ app.get('/api/livros', requireAuth, async (req, res) => {
       };
     });
 
+    setCache('livros', livros);
     res.json(livros);
   } catch (error) {
     console.error('Erro ao listar livros:', error);
@@ -541,6 +588,7 @@ app.post('/api/livros', requireAdmin, async (req, res) => {
     };
 
     const docRef = await db.collection('livros').add(novoLivro);
+    clearCache('livros');
 
     res.status(201).json({
       message: 'Livro adicionado com sucesso.',
@@ -583,6 +631,7 @@ app.put('/api/livros/:id', requireAdmin, async (req, res) => {
     }
 
     await docRef.set(atualizado);
+    clearCache('livros');
 
     res.json({ message: 'Livro atualizado com sucesso.' });
   } catch (error) {
@@ -595,6 +644,7 @@ app.delete('/api/livros/:id', requireAdmin, async (req, res) => {
   try {
     const id = req.params.id;
     await db.collection('livros').doc(id).delete();
+    clearCache('livros');
 
     res.json({ message: 'Livro removido com sucesso.' });
   } catch (error) {
