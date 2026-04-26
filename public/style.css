@@ -811,3 +811,25 @@ textarea::placeholder{
     padding:24px;
   }
 }
+/* CORRIGIR CARD PASSANDO POR CIMA DO TOPO */
+
+.channel-card:hover{
+  transform: translateY(-3px) scale(1.01) !important;
+  z-index: 1 !important;
+}
+
+.channel-grid{
+  padding-top: 18px !important;
+}
+
+.category-filters{
+  position: relative !important;
+  z-index: 10 !important;
+  margin-bottom: 20px !important;
+}
+
+.channels-top,
+.cliente-search-row{
+  position: relative !important;
+  z-index: 10 !important;
+}
