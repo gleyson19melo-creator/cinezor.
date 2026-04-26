@@ -581,3 +581,83 @@ video,
     font-size:13px;
   }
 }
+/* ESTILO NETFLIX / CINEZOR PREMIUM */
+
+:root{
+  --primary:#e50914;
+  --primary-dark:#b20710;
+}
+
+body{
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.75),rgba(0,0,0,.95)),
+    url('/fundo.jpg') center/cover fixed;
+}
+
+.panel-card,
+.channels-card,
+.about-section,
+.reviews-section,
+.site-footer,
+.login-card{
+  background:rgba(10,10,10,.86) !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+  box-shadow:0 25px 70px rgba(0,0,0,.55) !important;
+}
+
+.btn-primary{
+  background:linear-gradient(135deg,#ff1b25,#e50914,#850008) !important;
+  box-shadow:0 14px 35px rgba(229,9,20,.35) !important;
+}
+
+.btn-watch{
+  background:#e50914 !important;
+  box-shadow:0 12px 28px rgba(229,9,20,.30) !important;
+}
+
+.channel-card{
+  background:#111 !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  border-radius:18px !important;
+  box-shadow:0 16px 40px rgba(0,0,0,.45) !important;
+}
+
+.channel-card:hover{
+  transform:translateY(-8px) scale(1.03) !important;
+  box-shadow:0 30px 70px rgba(229,9,20,.25) !important;
+}
+
+.channel-body{
+  background:linear-gradient(180deg,#151515,#080808) !important;
+}
+
+.channel-name{
+  color:#fff !important;
+}
+
+.channel-info{
+  color:rgba(255,255,255,.70) !important;
+}
+
+.hero-badge,
+.btn-filter.active{
+  background:linear-gradient(135deg,#ff1b25,#e50914,#850008) !important;
+  color:#fff !important;
+}
+
+input,
+textarea,
+select{
+  background:rgba(255,255,255,.08) !important;
+  color:#fff !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+}
+
+input::placeholder,
+textarea::placeholder{
+  color:rgba(255,255,255,.55) !important;
+}
+
+::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,#e50914,#850008) !important;
+}
