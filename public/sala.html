@@ -127,6 +127,14 @@ function destruirHlsSala(){
   }
 }
 
+function tentarPlaySala(){
+  if (!video || iframeSala.style.display === 'block') return;
+
+  video.play().catch(() => {
+    console.log('Autoplay bloqueado. Clique no play do vídeo.');
+  });
+}
+
 function carregarVideoSala(url){
   if(!url){
     alert('Vídeo não encontrado para essa sala. Volte e abra pelo botão Assistir com amigos.');
@@ -142,6 +150,7 @@ function carregarVideoSala(url){
   if(
     url.includes('/embed/') ||
     url.includes('embedplayapi.site') ||
+    url.includes('superflixapi.rest') ||
     url.includes('youtube.com/embed/') ||
     url.includes('player.vimeo.com/')
   ){
@@ -166,10 +175,16 @@ function carregarVideoSala(url){
     if(video.canPlayType('application/vnd.apple.mpegurl')){
       video.src = finalUrl;
       video.load();
+      video.addEventListener('loadedmetadata', () => {
+        tentarPlaySala();
+      }, { once: true });
     } else if(window.Hls && Hls.isSupported()){
       hlsSala = new Hls();
       hlsSala.loadSource(finalUrl);
       hlsSala.attachMedia(video);
+      hlsSala.on(Hls.Events.MANIFEST_PARSED, function () {
+        tentarPlaySala();
+      });
     } else {
       alert('Seu navegador não suporta esse tipo de vídeo.');
     }
@@ -178,6 +193,9 @@ function carregarVideoSala(url){
 
   video.src = finalUrl;
   video.load();
+  video.addEventListener('loadedmetadata', () => {
+    tentarPlaySala();
+  }, { once: true });
 }
 
 async function carregarSalaServidor(){
