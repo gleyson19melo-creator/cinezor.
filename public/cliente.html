@@ -13,30 +13,36 @@
 
 <body>
 
-  <div class="cliente-layout">
+  <div class="cliente-layout catalogo-streaming">
 
-    <aside class="sidebar-cliente">
+    <aside class="sidebar-cliente sidebar-streaming">
       <h2>Cinezor</h2>
-      <a href="#">Início</a>
-      <a href="#">Filmes</a>
-      <a href="#">Séries</a>
-      <a href="#">Livros</a>
-      <a href="#">Premium</a>
+
+      <a href="#" onclick="filtrarCategoria('Todos')">Início</a>
+      <a href="#" onclick="filtrarCategoria('Filme')">Filmes</a>
+      <a href="#" onclick="filtrarCategoria('Série')">Séries</a>
+      <a href="#" onclick="filtrarCategoria('Anime')">Animes</a>
+      <a href="#" onclick="filtrarCategoria('Livro')">Livros</a>
+      <a href="#">Assistir juntos</a>
+      <a href="#">Em alta</a>
 
       <button class="btn btn-logout sidebar-sair" onclick="logout()">Sair</button>
     </aside>
 
-    <main class="cliente-main">
+    <main class="cliente-main cliente-main-streaming">
 
-      <section class="hero hero-cliente-premium">
+      <header class="streaming-topbar">
         <div>
           <span class="hero-badge">Cinezor Premium</span>
           <h1>Catálogo disponível</h1>
-          <p>Assista aos conteúdos disponíveis para seu acesso.</p>
         </div>
-      </section>
 
-      <section class="stats">
+        <div class="streaming-search">
+          <input type="text" id="buscaCliente" placeholder="Buscar filmes, séries, animes...">
+        </div>
+      </header>
+
+      <section class="stats stats-streaming">
         <div class="stat-card">
           <span>Total de conteúdos</span>
           <strong id="totalCanaisCliente">0</strong>
@@ -53,25 +59,23 @@
         </div>
       </section>
 
-      <section class="channels-card">
-        <div class="channels-top">
+      <section class="channels-card streaming-section">
+        <div class="channels-top streaming-section-title">
           <div>
             <h2>Explorar conteúdos</h2>
             <p>Escolha uma categoria e assista ao conteúdo desejado.</p>
           </div>
+
+          <button class="btn btn-filter active" onclick="filtrarCategoria('Todos')">Ver tudo</button>
         </div>
 
-        <div class="cliente-search-row">
-          <div class="search-box">
-            <input type="text" id="buscaCliente" placeholder="Buscar conteúdo...">
-          </div>
-
+        <div class="cliente-search-row" style="display:none;">
           <div class="search-box">
             <input type="text" id="buscaLivrosCliente" placeholder="Buscar só livros...">
           </div>
         </div>
 
-        <div class="category-filters">
+        <div class="category-filters category-streaming">
           <button class="btn btn-filter active" onclick="filtrarCategoria('Todos')">Todos</button>
           <button class="btn btn-filter" onclick="filtrarCategoria('Filme')">Filme</button>
           <button class="btn btn-filter" onclick="filtrarCategoria('Série')">Série</button>
@@ -81,7 +85,7 @@
           <button class="btn btn-filter" onclick="filtrarCategoria('Livro')">Livro</button>
         </div>
 
-        <div id="listaCanais" class="channel-grid"></div>
+        <div id="listaCanais" class="channel-grid streaming-grid"></div>
       </section>
 
     </main>
