@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,24 +8,123 @@
   <link rel="icon" type="image/png" href="/logo.png">
   <link rel="stylesheet" href="/style.css">
   <style>
-    .sala-wrap{max-width:1400px;margin:0 auto;padding:24px}
-    .topo-sala{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
-    .acoes-sala{display:flex;gap:10px;flex-wrap:wrap}
-    .player-box{background:#111;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:10px}
-    #videoSala{width:100%;max-height:70vh;background:#000;display:block;border-radius:16px}
-    #iframeSala{display:none;width:100%;height:70vh;border:none;border-radius:16px;background:#000}
-    .grid-sala{display:grid;grid-template-columns:320px 1fr;gap:18px;margin-top:18px}
-    .card-sala{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:16px}
-    .lista-online{display:flex;flex-direction:column;gap:8px;margin-top:10px}
-    .user-online{padding:10px;border-radius:12px;background:rgba(255,255,255,.04)}
-    #chatMsgs{height:320px;overflow:auto;padding-right:6px}
-    .msg{padding:10px;border-radius:12px;background:rgba(255,255,255,.04);margin-bottom:8px}
-    .chat-send{display:flex;gap:10px;margin-top:12px}
-    .chat-send input{flex:1}
-    .mini{opacity:.8;font-size:.92rem}
-    @media(max-width:900px){.grid-sala{grid-template-columns:1fr}.sala-wrap{padding:12px}#iframeSala{height:60vh}}
+    .sala-wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px
+    }
+
+    .topo-sala {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 18px
+    }
+
+    .acoes-sala {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .player-box {
+      background: #111;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+      padding: 10px
+    }
+
+    #videoSala {
+      width: 100%;
+      max-height: 70vh;
+      background: #000;
+      display: block;
+      border-radius: 16px
+    }
+
+    #iframeSala {
+      display: none;
+      width: 100%;
+      height: 70vh;
+      border: none;
+      border-radius: 16px;
+      background: #000
+    }
+
+    .grid-sala {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 18px;
+      margin-top: 18px
+    }
+
+    .card-sala {
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 18px;
+      padding: 16px
+    }
+
+    .lista-online {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px
+    }
+
+    .user-online {
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .04)
+    }
+
+    #chatMsgs {
+      height: 320px;
+      overflow: auto;
+      padding-right: 6px
+    }
+
+    .msg {
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .04);
+      margin-bottom: 8px
+    }
+
+    .chat-send {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px
+    }
+
+    .chat-send input {
+      flex: 1
+    }
+
+    .mini {
+      opacity: .8;
+      font-size: .92rem
+    }
+
+    @media(max-width:900px) {
+      .grid-sala {
+        grid-template-columns: 1fr
+      }
+
+      .sala-wrap {
+        padding: 12px
+      }
+
+      #iframeSala {
+        height: 60vh
+      }
+    }
   </style>
 </head>
+
 <body>
   <div class="sala-wrap">
     <div class="topo-sala">
@@ -65,287 +165,289 @@
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-<script>
-let hlsSala = null;
-let salaAtual = null;
-let sincronizando = false;
-let ultimoEnvioStatus = 0;
+  <script>
+    let hlsSala = null;
+    let salaAtual = null;
+    let sincronizando = false;
+    let ultimoEnvioStatus = 0;
 
-const params = new URLSearchParams(window.location.search);
-const roomId = params.get('room') || 'SEMID';
+    const params = new URLSearchParams(window.location.search);
+    const roomId = params.get('room') || 'SEMID';
 
-let nomeFilme =
-  params.get('nome') ||
-  localStorage.getItem('cinezor_sala_nome') ||
-  'Conteúdo';
+    let nomeFilme =
+      params.get('nome') ||
+      localStorage.getItem('cinezor_sala_nome') ||
+      'Conteúdo';
 
-let videoUrl =
-  params.get('video') ||
-  localStorage.getItem('cinezor_sala_video') ||
-  '';
+    let videoUrl =
+      params.get('video') ||
+      localStorage.getItem('cinezor_sala_video') ||
+      '';
 
-if (params.get('nome')) {
-  localStorage.setItem('cinezor_sala_nome', params.get('nome'));
-}
+    if (params.get('nome')) {
+      localStorage.setItem('cinezor_sala_nome', params.get('nome'));
+    }
 
-if (params.get('video')) {
-  localStorage.setItem('cinezor_sala_video', params.get('video'));
-}
+    if (params.get('video')) {
+      localStorage.setItem('cinezor_sala_video', params.get('video'));
+    }
 
-document.getElementById('tituloSala').textContent = '🎬 ' + nomeFilme;
-document.getElementById('subSala').textContent = 'Sala: ' + roomId;
+    document.getElementById('tituloSala').textContent = '🎬 ' + nomeFilme;
+    document.getElementById('subSala').textContent = 'Sala: ' + roomId;
 
-const video = document.getElementById('videoSala');
-const iframeSala = document.getElementById('iframeSala');
+    const video = document.getElementById('videoSala');
+    const iframeSala = document.getElementById('iframeSala');
 
-async function api(url, options = {}) {
-  const response = await fetch(url, {
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    ...options
-  });
+    async function api(url, options = {}) {
+      const response = await fetch(url, {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        ...options
+      });
 
-  if (response.status === 401) {
-    window.location.href = '/';
-    return null;
-  }
+      if (response.status === 401) {
+        window.location.href = '/';
+        return null;
+      }
 
-  const data = await response.json().catch(() => ({}));
+      const data = await response.json().catch(() => ({}));
 
-  if (!response.ok) {
-    console.log('Erro API:', data);
-    return null;
-  }
+      if (!response.ok) {
+        console.log('Erro API:', data);
+        return null;
+      }
 
-  return data;
-}
+      return data;
+    }
 
-function destruirHlsSala(){
-  if(hlsSala){
-    hlsSala.destroy();
-    hlsSala = null;
-  }
-}
+    function destruirHlsSala() {
+      if (hlsSala) {
+        hlsSala.destroy();
+        hlsSala = null;
+      }
+    }
 
-function tentarPlaySala(){
-  if (!video || iframeSala.style.display === 'block') return;
+    function tentarPlaySala() {
+      if (!video || iframeSala.style.display === 'block') return;
 
-  video.play().catch(() => {
-    console.log('Autoplay bloqueado. Clique no play do vídeo.');
-  });
-}
+      video.play().catch(() => {
+        console.log('Autoplay bloqueado. Clique no play do vídeo.');
+      });
+    }
 
-function carregarVideoSala(url){
-  if(!url){
-    alert('Vídeo não encontrado para essa sala. Volte e abra pelo botão Assistir com amigos.');
-    return;
-  }
+    function carregarVideoSala(url) {
+      if (!url) {
+        alert('Vídeo não encontrado para essa sala. Volte e abra pelo botão Assistir com amigos.');
+        return;
+      }
 
-  destruirHlsSala();
-  video.pause();
-  video.removeAttribute('src');
-  video.load();
-  iframeSala.src = '';
+      destruirHlsSala();
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      iframeSala.src = '';
 
-  if(
-    url.includes('/embed/') ||
-    url.includes('embedplayapi.top') ||
-    url.includes('superflixapi.online') ||
-    url.includes('youtube.com/embed/') ||
-    url.includes('player.vimeo.com/')
-  ){
-    video.style.display = 'none';
-    iframeSala.style.display = 'block';
-    iframeSala.src = url;
-    return;
-  }
+      if (
+        url.includes('/embed/') ||
+        url.includes('embedplayapi.top') ||
+        url.includes('superflix') ||   // 👈 MELHORA AQUI
+        url.includes('superflixapi') || // 👈 segurança extra
+        url.includes('youtube.com/embed/') ||
+        url.includes('player.vimeo.com/')
+      ) {
+        video.style.display = 'none';
+        iframeSala.style.display = 'block';
+        iframeSala.src = url;
+        return;
+      }
 
-  let finalUrl = url;
+      let finalUrl = url;
 
-  if(url.includes('.m3u8')){
-    finalUrl = `/proxy-hls?url=${encodeURIComponent(url)}`;
-  } else if(url.startsWith('http://')){
-    finalUrl = `/proxy-segment?url=${encodeURIComponent(url)}`;
-  }
+      if (url.includes('.m3u8')) {
+        finalUrl = `/proxy-hls?url=${encodeURIComponent(url)}`;
+      } else if (url.startsWith('http://')) {
+        finalUrl = `/proxy-segment?url=${encodeURIComponent(url)}`;
+      }
 
-  iframeSala.style.display = 'none';
-  video.style.display = 'block';
+      iframeSala.style.display = 'none';
+      video.style.display = 'block';
 
-  if(url.includes('.m3u8')){
-    if(video.canPlayType('application/vnd.apple.mpegurl')){
+      if (url.includes('.m3u8')) {
+        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = finalUrl;
+          video.load();
+          video.addEventListener('loadedmetadata', () => {
+            tentarPlaySala();
+          }, { once: true });
+        } else if (window.Hls && Hls.isSupported()) {
+          hlsSala = new Hls();
+          hlsSala.loadSource(finalUrl);
+          hlsSala.attachMedia(video);
+          hlsSala.on(Hls.Events.MANIFEST_PARSED, function () {
+            tentarPlaySala();
+          });
+        } else {
+          alert('Seu navegador não suporta esse tipo de vídeo.');
+        }
+        return;
+      }
+
       video.src = finalUrl;
       video.load();
       video.addEventListener('loadedmetadata', () => {
         tentarPlaySala();
       }, { once: true });
-    } else if(window.Hls && Hls.isSupported()){
-      hlsSala = new Hls();
-      hlsSala.loadSource(finalUrl);
-      hlsSala.attachMedia(video);
-      hlsSala.on(Hls.Events.MANIFEST_PARSED, function () {
-        tentarPlaySala();
+    }
+
+    async function carregarSalaServidor() {
+      const sala = await api(`/api/salas/${encodeURIComponent(roomId)}`);
+
+      if (sala) {
+        salaAtual = sala;
+
+        nomeFilme = sala.nome || nomeFilme;
+        videoUrl = sala.videoUrl || videoUrl;
+
+        document.getElementById('tituloSala').textContent = '🎬 ' + nomeFilme;
+        document.getElementById('subSala').textContent = 'Sala: ' + roomId;
+
+        if (!video.src && !iframeSala.src) {
+          carregarVideoSala(videoUrl);
+        }
+      } else {
+        carregarVideoSala(videoUrl);
+      }
+    }
+
+    async function entrarSalaServidor() {
+      await api(`/api/salas/${encodeURIComponent(roomId)}/entrar`, {
+        method: 'POST',
+        body: JSON.stringify({})
       });
-    } else {
-      alert('Seu navegador não suporta esse tipo de vídeo.');
     }
-    return;
-  }
 
-  video.src = finalUrl;
-  video.load();
-  video.addEventListener('loadedmetadata', () => {
-    tentarPlaySala();
-  }, { once: true });
-}
+    async function carregarOnlineServidor() {
+      const online = await api(`/api/salas/${encodeURIComponent(roomId)}/online`);
+      const box = document.getElementById('onlineList');
 
-async function carregarSalaServidor(){
-  const sala = await api(`/api/salas/${encodeURIComponent(roomId)}`);
+      if (!Array.isArray(online) || online.length === 0) {
+        box.innerHTML = '<div class="mini">Ninguém online.</div>';
+        return;
+      }
 
-  if (sala) {
-    salaAtual = sala;
-
-    nomeFilme = sala.nome || nomeFilme;
-    videoUrl = sala.videoUrl || videoUrl;
-
-    document.getElementById('tituloSala').textContent = '🎬 ' + nomeFilme;
-    document.getElementById('subSala').textContent = 'Sala: ' + roomId;
-
-    if (!video.src && !iframeSala.src) {
-      carregarVideoSala(videoUrl);
+      box.innerHTML = online.map(u => `<div class="user-online">🟢 ${u.nome || 'Convidado'}</div>`).join('');
     }
-  } else {
-    carregarVideoSala(videoUrl);
-  }
-}
 
-async function entrarSalaServidor(){
-  await api(`/api/salas/${encodeURIComponent(roomId)}/entrar`, {
-    method: 'POST',
-    body: JSON.stringify({})
-  });
-}
+    async function carregarChatServidor() {
+      const mensagens = await api(`/api/salas/${encodeURIComponent(roomId)}/chat`);
+      const box = document.getElementById('chatMsgs');
 
-async function carregarOnlineServidor(){
-  const online = await api(`/api/salas/${encodeURIComponent(roomId)}/online`);
-  const box = document.getElementById('onlineList');
+      if (!Array.isArray(mensagens) || mensagens.length === 0) {
+        box.innerHTML = '<div class="mini">Nenhuma mensagem ainda.</div>';
+        return;
+      }
 
-  if (!Array.isArray(online) || online.length === 0) {
-    box.innerHTML = '<div class="mini">Ninguém online.</div>';
-    return;
-  }
+      box.innerHTML = mensagens.map(m => `<div class="msg"><strong>${m.nome || 'Convidado'}:</strong> ${m.texto}</div>`).join('');
+      box.scrollTop = box.scrollHeight;
+    }
 
-  box.innerHTML = online.map(u => `<div class="user-online">🟢 ${u.nome || 'Convidado'}</div>`).join('');
-}
+    window.enviarMsg = async function () {
+      const input = document.getElementById('msgInput');
+      const texto = input.value.trim();
+      if (!texto) return;
 
-async function carregarChatServidor(){
-  const mensagens = await api(`/api/salas/${encodeURIComponent(roomId)}/chat`);
-  const box = document.getElementById('chatMsgs');
+      const enviado = await api(`/api/salas/${encodeURIComponent(roomId)}/chat`, {
+        method: 'POST',
+        body: JSON.stringify({ texto })
+      });
 
-  if (!Array.isArray(mensagens) || mensagens.length === 0) {
-    box.innerHTML = '<div class="mini">Nenhuma mensagem ainda.</div>';
-    return;
-  }
+      if (enviado) {
+        input.value = '';
+        carregarChatServidor();
+      }
+    }
 
-  box.innerHTML = mensagens.map(m => `<div class="msg"><strong>${m.nome || 'Convidado'}:</strong> ${m.texto}</div>`).join('');
-  box.scrollTop = box.scrollHeight;
-}
+    async function enviarStatusSala() {
+      if (iframeSala.style.display === 'block') return;
+      if (!video || !video.src) return;
 
-window.enviarMsg = async function(){
-  const input = document.getElementById('msgInput');
-  const texto = input.value.trim();
-  if(!texto) return;
+      const agora = Date.now();
+      if (agora - ultimoEnvioStatus < 900) return;
+      ultimoEnvioStatus = agora;
 
-  const enviado = await api(`/api/salas/${encodeURIComponent(roomId)}/chat`, {
-    method: 'POST',
-    body: JSON.stringify({ texto })
-  });
+      await api(`/api/salas/${encodeURIComponent(roomId)}/status`, {
+        method: 'POST',
+        body: JSON.stringify({
+          isPlaying: !video.paused,
+          currentTime: video.currentTime || 0
+        })
+      });
+    }
 
-  if (enviado) {
-    input.value = '';
-    carregarChatServidor();
-  }
-}
+    async function sincronizarStatusSala() {
+      if (iframeSala.style.display === 'block') return;
+      if (!video || !video.src) return;
 
-async function enviarStatusSala(){
-  if (iframeSala.style.display === 'block') return;
-  if (!video || !video.src) return;
+      const sala = await api(`/api/salas/${encodeURIComponent(roomId)}`);
+      if (!sala) return;
 
-  const agora = Date.now();
-  if (agora - ultimoEnvioStatus < 900) return;
-  ultimoEnvioStatus = agora;
+      const tempoServidor = Number(sala.currentTime) || 0;
+      const diferenca = Math.abs((video.currentTime || 0) - tempoServidor);
 
-  await api(`/api/salas/${encodeURIComponent(roomId)}/status`, {
-    method: 'POST',
-    body: JSON.stringify({
-      isPlaying: !video.paused,
-      currentTime: video.currentTime || 0
-    })
-  });
-}
+      sincronizando = true;
 
-async function sincronizarStatusSala(){
-  if (iframeSala.style.display === 'block') return;
-  if (!video || !video.src) return;
+      if (diferenca > 3) {
+        video.currentTime = tempoServidor;
+      }
 
-  const sala = await api(`/api/salas/${encodeURIComponent(roomId)}`);
-  if (!sala) return;
+      if (sala.isPlaying && video.paused) {
+        video.play().catch(() => { });
+      }
 
-  const tempoServidor = Number(sala.currentTime) || 0;
-  const diferenca = Math.abs((video.currentTime || 0) - tempoServidor);
+      if (!sala.isPlaying && !video.paused) {
+        video.pause();
+      }
 
-  sincronizando = true;
+      setTimeout(() => { sincronizando = false; }, 300);
+    }
 
-  if (diferenca > 3) {
-    video.currentTime = tempoServidor;
-  }
+    video.addEventListener('play', () => {
+      if (!sincronizando) enviarStatusSala();
+    });
 
-  if (sala.isPlaying && video.paused) {
-    video.play().catch(() => {});
-  }
+    video.addEventListener('pause', () => {
+      if (!sincronizando) enviarStatusSala();
+    });
 
-  if (!sala.isPlaying && !video.paused) {
-    video.pause();
-  }
+    video.addEventListener('seeked', () => {
+      if (!sincronizando) enviarStatusSala();
+    });
 
-  setTimeout(() => { sincronizando = false; }, 300);
-}
+    window.convidarSala = function () {
+      const msg = `Bora assistir comigo no Cinezor? ${location.href}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
 
-video.addEventListener('play', () => {
-  if (!sincronizando) enviarStatusSala();
-});
+    window.copiarLinkSala = async function () {
+      try {
+        await navigator.clipboard.writeText(location.href);
+        alert('Link copiado!');
+      } catch (e) { alert('Não foi possível copiar.'); }
+    }
 
-video.addEventListener('pause', () => {
-  if (!sincronizando) enviarStatusSala();
-});
+    async function iniciarSala() {
+      await carregarSalaServidor();
+      await entrarSalaServidor();
+      await carregarOnlineServidor();
+      await carregarChatServidor();
 
-video.addEventListener('seeked', () => {
-  if (!sincronizando) enviarStatusSala();
-});
+      setInterval(carregarOnlineServidor, 3000);
+      setInterval(carregarChatServidor, 2500);
+      setInterval(sincronizarStatusSala, 2500);
+    }
 
-window.convidarSala = function(){
-  const msg = `Bora assistir comigo no Cinezor? ${location.href}`;
-  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-}
-
-window.copiarLinkSala = async function(){
-  try{
-    await navigator.clipboard.writeText(location.href);
-    alert('Link copiado!');
-  }catch(e){ alert('Não foi possível copiar.'); }
-}
-
-async function iniciarSala(){
-  await carregarSalaServidor();
-  await entrarSalaServidor();
-  await carregarOnlineServidor();
-  await carregarChatServidor();
-
-  setInterval(carregarOnlineServidor, 3000);
-  setInterval(carregarChatServidor, 2500);
-  setInterval(sincronizarStatusSala, 2500);
-}
-
-iniciarSala();
-</script>
+    iniciarSala();
+  </script>
 </body>
+
 </html>
