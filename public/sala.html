@@ -153,7 +153,12 @@
 
       <video id="videoSala" controls playsinline webkit-playsinline></video>
 
-      <iframe id="iframeSala" allowfullscreen referrerpolicy="origin"></iframe>
+      <iframe
+        id="iframeSala"
+        allowfullscreen
+        allow="autoplay; fullscreen"
+        referrerpolicy="origin"
+      ></iframe>
 
     </div>
 
@@ -295,19 +300,29 @@
 
       iframeSala.src = '';
 
-      // PLAYER EMBED
+      // EMBEDS
       if (
         url.includes('/embed/') ||
         url.includes('youtube.com/embed/') ||
         url.includes('player.vimeo.com/') ||
-        url.includes('superflix')
+        url.includes('superflix') ||
+        url.includes('superflixapi') ||
+        url.includes('embedplayapi.top')
       ) {
 
         video.style.display = 'none';
 
         iframeSala.style.display = 'block';
 
-        iframeSala.src = url;
+        // força autoplay
+        let embedUrl = url;
+
+        if (!embedUrl.includes('autoplay=1')) {
+
+          embedUrl += (embedUrl.includes('?') ? '&' : '?') + 'autoplay=1';
+        }
+
+        iframeSala.src = embedUrl;
 
         return;
       }
@@ -356,7 +371,9 @@
 
         else if (window.Hls && Hls.isSupported()) {
 
-          hlsSala = new Hls();
+          hlsSala = new Hls({
+            enableWorker: true
+          });
 
           hlsSala.loadSource(finalUrl);
 
