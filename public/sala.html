@@ -41,7 +41,7 @@
 
     #videoSala {
       width: 100%;
-      max-height: 70vh;
+      height: 70vh;
       background: #000;
       display: block;
       border-radius: 16px;
@@ -121,7 +121,8 @@
         padding: 12px;
       }
 
-      #iframeSala {
+      #iframeSala,
+      #videoSala {
         height: 60vh;
       }
     }
@@ -151,14 +152,21 @@
 
     <div class="player-box">
 
-      <video id="videoSala" controls playsinline webkit-playsinline></video>
+      <video
+        id="videoSala"
+        controls
+        autoplay
+        playsinline
+        webkit-playsinline
+        crossorigin="anonymous">
+      </video>
 
       <iframe
         id="iframeSala"
         allowfullscreen
         allow="autoplay; fullscreen"
-        referrerpolicy="origin"
-      ></iframe>
+        referrerpolicy="origin">
+      </iframe>
 
     </div>
 
@@ -272,12 +280,10 @@
 
     function tentarPlaySala() {
 
-      if (!video || iframeSala.style.display === 'block') return;
+      if (!video) return;
 
-      video.play().catch(() => {
-
-        console.log('Autoplay bloqueado. Clique no play do vídeo.');
-
+      video.play().catch((e) => {
+        console.log('Autoplay bloqueado:', e);
       });
     }
 
@@ -290,6 +296,8 @@
         return;
       }
 
+      console.log('URL recebida:', url);
+
       destruirHlsSala();
 
       video.pause();
@@ -300,32 +308,50 @@
 
       iframeSala.src = '';
 
-      // EMBEDS
+      // =========================
+      // EMBEDS / SUPERFLIX
+      // =========================
+
       if (
         url.includes('/embed/') ||
         url.includes('youtube.com/embed/') ||
         url.includes('player.vimeo.com/') ||
         url.includes('superflix') ||
         url.includes('superflixapi') ||
-        url.includes('embedplayapi.top')
+        url.includes('embedplayapi.top') ||
+        url.includes('/filmes/') ||
+        url.includes('/series/')
       ) {
 
         video.style.display = 'none';
 
         iframeSala.style.display = 'block';
 
-        // força autoplay
         let embedUrl = url;
 
-        if (!embedUrl.includes('autoplay=1')) {
+        // transforma /filmes em /embed
+        embedUrl = embedUrl.replace('/filmes/', '/embed/');
+        embedUrl = embedUrl.replace('/series/', '/embed/');
 
+        // autoplay
+        if (!embedUrl.includes('autoplay=1')) {
           embedUrl += (embedUrl.includes('?') ? '&' : '?') + 'autoplay=1';
         }
+
+        console.log('EMBED:', embedUrl);
 
         iframeSala.src = embedUrl;
 
         return;
       }
+
+      // =========================
+      // VIDEO NORMAL
+      // =========================
+
+      iframeSala.style.display = 'none';
+
+      video.style.display = 'block';
 
       let finalUrl = url;
 
@@ -334,42 +360,9 @@
 
         finalUrl = `/proxy-hls?url=${encodeURIComponent(url)}`;
 
-      }
+        console.log('HLS:', finalUrl);
 
-      // HTTP / HTTPS
-      else if (
-        url.startsWith('http://') ||
-        url.startsWith('https://')
-      ) {
-
-        finalUrl = `/proxy-segment?url=${encodeURIComponent(url)}`;
-
-      }
-
-      iframeSala.style.display = 'none';
-
-      video.style.display = 'block';
-
-      // PLAYER HLS
-      if (url.includes('.m3u8')) {
-
-        if (video.canPlayType('application/vnd.apple.mpegurl')) {
-
-          video.src = finalUrl;
-
-          video.load();
-
-          video.addEventListener('loadedmetadata', () => {
-
-            tentarPlaySala();
-
-          }, {
-            once: true
-          });
-
-        }
-
-        else if (window.Hls && Hls.isSupported()) {
+        if (Hls.isSupported()) {
 
           hlsSala = new Hls({
             enableWorker: true
@@ -385,29 +378,72 @@
 
           });
 
-        }
+          hlsSala.on(Hls.Events.ERROR, function (event, data) {
 
-        else {
+            console.log('ERRO HLS:', data);
 
-          alert('Seu navegador não suporta esse tipo de vídeo.');
+          });
+
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+
+          video.src = finalUrl;
+
+          video.addEventListener('loadedmetadata', () => {
+
+            tentarPlaySala();
+
+          });
 
         }
 
         return;
       }
 
-      // MP4 NORMAL
-      video.src = finalUrl;
+      // MP4
+      if (
+        url.endsWith('.mp4') ||
+        url.includes('.mp4?')
+      ) {
 
-      video.load();
+        finalUrl = url;
 
-      video.addEventListener('loadedmetadata', () => {
+        console.log('MP4:', finalUrl);
 
-        tentarPlaySala();
+        video.src = finalUrl;
 
-      }, {
-        once: true
-      });
+        video.load();
+
+        video.addEventListener('loadedmetadata', () => {
+
+          tentarPlaySala();
+
+        });
+
+        return;
+      }
+
+      // LINKS HTTP NORMAIS
+      if (
+        url.startsWith('http://') ||
+        url.startsWith('https://')
+      ) {
+
+        finalUrl = `/proxy-segment?url=${encodeURIComponent(url)}`;
+
+        console.log('PROXY:', finalUrl);
+
+        video.src = finalUrl;
+
+        video.load();
+
+        video.addEventListener('loadedmetadata', () => {
+
+          tentarPlaySala();
+
+        });
+
+      }
+
     }
 
     async function carregarSalaServidor() {
@@ -550,7 +586,7 @@
 
       if (sala.isPlaying && video.paused) {
 
-        video.play().catch(() => {});
+        video.play().catch(() => { });
       }
 
       if (!sala.isPlaying && !video.paused) {
