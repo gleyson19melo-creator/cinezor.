@@ -206,14 +206,31 @@ function tryPlay(videoElement) {
   if (!videoElement) return;
 
   videoElement.muted = true;
+  videoElement.autoplay = true;
+  videoElement.playsInline = true;
+  videoElement.controls = true;
 
-  videoElement.play()
-    .then(() => {
-      videoElement.muted = false;
-    })
-    .catch((error) => {
-      console.log('Erro ao reproduzir vídeo:', error);
-    });
+  const playPromise = videoElement.play();
+
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        setTimeout(() => {
+          videoElement.muted = false;
+        }, 1000);
+      })
+      .catch((error) => {
+        console.log('Erro ao reproduzir vídeo:', error);
+
+        document.addEventListener(
+          'click',
+          () => {
+            videoElement.play();
+          },
+          { once: true }
+        );
+      });
+  }
 }
 
 // Reproduz vídeo ou embed
@@ -245,6 +262,8 @@ function playVideoUrl(videoElement, url) {
     url.includes('embedplayapi.site') ||
     url.includes('superflixapi.rest') ||
     url.includes('youtube.com/embed/') ||
+    url.includes('youtu.be/') ||
+    url.includes('youtube.com/watch') ||
     url.includes('player.vimeo.com/')
 
   ) {
@@ -252,7 +271,7 @@ function playVideoUrl(videoElement, url) {
 
     if (embedFrame) {
       embedFrame.style.display = 'block';
-      embedFrame.src = url;
+      embedFrame.src = finalUrl;
     }
     return;
   }
