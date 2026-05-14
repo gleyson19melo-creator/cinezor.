@@ -261,11 +261,11 @@ function playVideoUrl(videoElement, url) {
     url.includes('/embed/') ||
     url.includes('embedplayapi.site') ||
     url.includes('superflixapi.rest') ||
+    url.includes('/canal/') ||
     url.includes('youtube.com/embed/') ||
     url.includes('youtu.be/') ||
     url.includes('youtube.com/watch') ||
     url.includes('player.vimeo.com/')
-
   ) {
     videoElement.style.display = 'none';
 
