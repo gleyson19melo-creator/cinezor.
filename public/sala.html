@@ -164,7 +164,8 @@
       <iframe
         id="iframeSala"
         allowfullscreen
-        allow="autoplay; fullscreen"
+        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
         referrerpolicy="origin">
       </iframe>
 
@@ -320,6 +321,7 @@
         url.includes('superflixapi') ||
         url.includes('embedplayapi.top') ||
         url.includes('/filmes/') ||
+        url.includes('/serie/') ||
         url.includes('/series/')
       ) {
 
@@ -329,8 +331,13 @@
 
         let embedUrl = url;
 
-        // transforma /filmes em /embed
+        // transforma filmes em embed
         embedUrl = embedUrl.replace('/filmes/', '/embed/');
+
+        // transforma serie singular
+        embedUrl = embedUrl.replace('/serie/', '/embed/');
+
+        // transforma series plural
         embedUrl = embedUrl.replace('/series/', '/embed/');
 
         // autoplay
@@ -338,7 +345,7 @@
           embedUrl += (embedUrl.includes('?') ? '&' : '?') + 'autoplay=1';
         }
 
-        console.log('EMBED:', embedUrl);
+        console.log('EMBED FINAL:', embedUrl);
 
         iframeSala.src = embedUrl;
 
