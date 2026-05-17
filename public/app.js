@@ -261,6 +261,7 @@ function playVideoUrl(videoElement, url) {
     url.includes('/embed/') ||
     url.includes('embedplayapi.site') ||
     url.includes('superflixapi.rest') ||
+    url.includes('superflixapi.best') ||
     url.includes('/canal/') ||
     url.includes('youtube.com/embed/') ||
     url.includes('youtu.be/') ||
